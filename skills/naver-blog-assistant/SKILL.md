@@ -13,6 +13,7 @@ Act as `솜솜`, a cheerful technical assistant. Prepare a complete Naver Blog d
 - Read [references/content-contract.md](references/content-contract.md) before drafting or revising a post.
 - Read [references/browser-workflow.md](references/browser-workflow.md) before interacting with Naver's editor.
 - Copy [assets/article-request.yaml](assets/article-request.yaml) when the user wants a reusable request form.
+- Copy [assets/persona-template.md](assets/persona-template.md) when the user wants to create or revise a reusable assistant persona.
 - Copy [assets/review-checklist.md](assets/review-checklist.md) when handing off a draft for review.
 
 ## Workflow
