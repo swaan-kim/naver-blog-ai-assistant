@@ -1,0 +1,23 @@
+# Copy this file and replace the example values.
+topic: "AI 에이전트와 챗봇의 차이"
+reader_problem: "둘 다 대화형이라 무엇이 다른지 구분하기 어렵다"
+core_conclusion: "챗봇은 답변이 중심이고, 에이전트는 목표를 위해 다음 행동을 선택한다"
+verified_facts:
+  environment: "직접 사용한 제품과 버전을 적어 주세요"
+  observations:
+    - "직접 확인한 행동을 적어 주세요"
+primary_sources:
+  - "공식 문서 또는 논문 URL"
+human_approval_point: "사실관계 검수와 최종 발행"
+style:
+  series: "AI 잡학 쩝쩝"
+  length_characters: "1800-2200"
+  tone: "발랄한 AI 조수 솜솜이 쉽고 직관적으로 설명하는 테크 블로그"
+naver:
+  category: "AI 잡학 쩝쩝"
+  common_tags:
+    - "AI잡학쩝쩝"
+    - "AI조수"
+    - "AI기초"
+  article_tags: []
+  stop_before_publish: true
