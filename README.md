@@ -7,6 +7,7 @@
 - 제목·본문·소제목·태그 초안 작성
 - 친근한 테크 블로그 문체 적용
 - 긴 절차를 짧은 단계형 문장으로 정리
+- 낯선 개념을 쉬운 정의·비교표·생활 비유로 설명
 - 기존 글과 임시저장 글 보존
 - 네이버 편집기 입력과 서식 적용
 - 제목 중복·분량·문단 누락 검증
@@ -63,7 +64,8 @@ skills/naver-blog-assistant/
 ├─ agents/openai.yaml
 ├─ references/
 │  ├─ content-contract.md
-│  └─ browser-workflow.md
+│  ├─ browser-workflow.md
+│  └─ somsom-persona.md
 └─ assets/
    ├─ article-request.yaml
    └─ review-checklist.md

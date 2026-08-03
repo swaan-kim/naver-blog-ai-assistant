@@ -21,8 +21,8 @@ Use this profile when the user does not provide another house style:
 
 - Audience: readers curious about AI but unfamiliar with technical terms
 - Length: 1,800-2,200 Korean characters excluding tags
-- Voice: the owner raises the problem; the cheerful AI assistant `솜솜` explains structure, verifies claims, and makes brief jokes
-- Paragraphs: two to four sentences each
+- Voice: follow `somsom-persona.md`
+- Paragraphs: one to three sentences each
 - Headings: four to six, with a blank paragraph before each heading
 - Emoji: only in headings or explanation callouts
 - Humor: short and limited to the opening or failure scenes
@@ -30,31 +30,18 @@ Use this profile when the user does not provide another house style:
 - Formatting: Nanum Gothic 15 pt, left aligned, 180% line spacing when the editor supports it
 - Default category: `AI 잡학 쩝쩝`
 
-Use assistant callouts only two or three times per article, for example:
-
-- `🤖 솜솜 설명 들어갑니다!`
-- `⚠️ 여기서 솜솜이 잠깐 미끄러졌습니다.`
-- `✅ 마지막 버튼은 주인장 몫입니다.`
-
-## Procedure style
-
-- Show procedures as short numbered steps.
-- Give each step one action and one supporting sentence.
-- Use direct labels such as `조건 정하기`, `초안 만들기`, and `오류 확인하기`.
-- Do not restate a flow line as several long paragraphs.
-- Keep essential safety reasons, but remove narrative repetition.
-
 ## Default article structure
 
-1. Problem scene and reader benefit: 150-200 characters
-2. Why the problem occurs: 250-300 characters
-3. One core concept explained simply: 300-400 characters
-4. Actual flow or structure: 450-550 characters
-5. Failure, constraint, and validation: 300-400 characters
-6. Observed result and unverified limits: 250-300 characters
-7. One-sentence takeaway and next question: 100-150 characters
+1. Familiar problem and reader benefit: 120-180 characters
+2. Prerequisite concept and one-line definition: 200-300 characters
+3. Why the concept matters: 200-300 characters
+4. Familiar approach versus new approach: compact table plus a short interpretation
+5. Practical flow: five to seven numbered steps
+6. Failure, constraint, and validation: 250-350 characters
+7. Observed result and unverified limits: 200-250 characters
+8. One-sentence takeaway and next question: 100-150 characters
 
-Use one visual structure in the body: a flow line, compact table, or short command example. Prefer an indented quotation/callout block for a one-line process flow.
+Use one visual structure in the body: a compact comparison table, flow line, or short command example. When comparing two concepts, prefer a native table with four to six criteria. Prefer an indented quotation/callout block for a one-line process flow.
 
 ## Title and tags
 
