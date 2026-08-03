@@ -2,11 +2,12 @@
 
 발랄한 AI 조수 `솜솜`이 네이버 블로그 초안을 만들고 편집기에 입력한 뒤, 사용자의 최종 검수와 발행 직전까지 준비하도록 안내하는 Codex 스킬입니다.
 
-## 무엇을 해주나요?
+## 무엇을 하나요?
 
 - 제목·본문·소제목·태그 초안 작성
 - 친근한 테크 블로그 문체 적용
 - 긴 절차를 짧은 단계형 문장으로 정리
+- 낯선 개념을 쉬운 정의·비교표·생활 비유로 설명
 - 기존 글과 임시저장 글 보존
 - 네이버 편집기 입력과 서식 적용
 - 제목 중복·분량·문단 누락 검증
@@ -14,29 +15,41 @@
 
 로그인과 최종 발행은 항상 사용자가 직접 처리합니다.
 
-## 지금 GitHub 계정이 필요한가요?
+## 1분 설치
 
-아니요. 내려받은 폴더만으로 먼저 설치하고 시험할 수 있습니다. 다른 사람에게 배포하거나 업데이트를 공유할 때 GitHub 저장소가 필요합니다.
+GitHub 계정이나 명령어는 필요하지 않습니다.
 
-## 설치
+1. 저장소 위쪽의 **Code → Download ZIP**을 누르거나 [ZIP을 바로 내려받습니다](https://github.com/swaan-kim/naver-blog-ai-assistant/archive/refs/heads/main.zip).
+2. ZIP을 풀고 `skills/naver-blog-assistant` 폴더를 복사합니다.
+3. 아래 위치에 `naver-blog-assistant`라는 이름으로 붙여 넣습니다.
 
-1. `skills/naver-blog-assistant` 폴더를 복사합니다.
-2. 사용자 Codex 스킬 폴더의 `naver-blog-assistant` 위치에 붙여 넣습니다.
-3. Codex에서 새 작업을 시작합니다.
-4. 다음처럼 요청합니다.
+```text
+Windows: C:\Users\사용자이름\.codex\skills\naver-blog-assistant
+macOS/Linux: ~/.codex/skills/naver-blog-assistant
+```
+
+4. Codex에서 새 작업을 열고 아래 요청문을 붙여 넣습니다.
+
+> Codex용 설치 예시입니다. 메타프롬프트·페르소나·퓨샷·편집 기준을 설계하는 원리는 ChatGPT나 Claude에서도 활용할 수 있습니다. 다만 네이버 편집기 자동 입력은 사용하는 환경의 브라우저 제어 기능이 필요합니다.
+
+## 복사해서 바로 쓰는 요청문
 
 ```text
 $naver-blog-assistant를 사용해서
 AI 에이전트와 챗봇의 차이를 설명하는 네이버 블로그 글을 작성해줘.
+독자는 AI를 처음 접하는 사람이고, 2,000자 안팎의 친근한 테크 블로그 말투로 써줘.
+어려운 용어는 쉽게 풀고, 짧은 문단과 5단계 설명을 사용해줘.
 초안을 먼저 보여주고, 내가 승인하면 네이버 편집기에 입력해줘.
 최종 발행은 누르지 마.
 ```
 
-Windows의 일반적인 사용자 스킬 위치는 다음과 같습니다.
+## 실제로 이렇게 움직입니다
 
-```text
-C:\Users\사용자이름\.codex\skills\naver-blog-assistant
-```
+![솜솜의 네이버 자동 입력 예시](media/somsom-naver-auto-input.gif)
+
+[정지 화면 PNG 보기](media/somsom-naver-auto-input-cover.png)
+
+나만의 조수를 만들고 싶다면 [`persona-template.md`](skills/naver-blog-assistant/assets/persona-template.md)를 채워 함께 전달하세요.
 
 ## 처음 따라 하기
 
@@ -63,9 +76,11 @@ skills/naver-blog-assistant/
 ├─ agents/openai.yaml
 ├─ references/
 │  ├─ content-contract.md
-│  └─ browser-workflow.md
+│  ├─ browser-workflow.md
+│  └─ somsom-persona.md
 └─ assets/
    ├─ article-request.yaml
+   ├─ persona-template.md
    └─ review-checklist.md
 ```
 

@@ -11,8 +11,11 @@ primary_sources:
 human_approval_point: "사실관계 검수와 최종 발행"
 style:
   series: "AI 잡학 쩝쩝"
+  persona: "솜솜"
   length_characters: "1800-2200"
   tone: "발랄한 AI 조수 솜솜이 쉽고 직관적으로 설명하는 테크 블로그"
+  explanation_flow: "쉬운 정의 → 비교표 → 생활 비유 → 짧은 실행 단계 → 한 줄 결론"
+  procedure_style: "한 단계에 한 행동과 한 문장"
 naver:
   category: "AI 잡학 쩝쩝"
   common_tags:
