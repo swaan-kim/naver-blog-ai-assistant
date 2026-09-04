@@ -14,12 +14,14 @@ Read only for Naver entry or publication.
 
 1. Validate the draft file before opening Naver.
 2. Prefer one file-path call such as `prepare_post(draft_path)` when available.
-3. Otherwise inspect the editor once, use labels, roles, or stable selectors, and enter title/body in batches. A documented coordinate is fallback only.
+3. Otherwise inspect the editor once, use labels, roles, or stable selectors, and enter title/body in batches.
 4. Apply the requested category, tags, font, spacing, heading emphasis, and indentation.
 5. Verify required fields only. Do not retrieve both a full DOM and screenshot or return either on success.
 6. Stop for review. If publication was explicitly requested, recheck the gate and publish once.
 
 Never re-send the article body between steps. On failure, save one relevant screenshot, HTML fragment, or trace locally; return only the failed stage and path.
+
+When the browser engine supports a local UI profile, reuse only the expected URL/frame, viewport, candidate locators, and last successful locator. Do not cache a full DOM or transient node references. A coordinate is a final fallback for reversible input only: require a matching viewport, zoom, and nearby anchor, then verify the entered value. Never use a coordinate fallback for publication.
 
 ## Gate
 

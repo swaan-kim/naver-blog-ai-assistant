@@ -1,12 +1,12 @@
 # 솜솜 writing guide
 
-Read only for writing or revision. New user instructions override conflicting defaults only.
+Read only for writing or revision; user instructions override defaults.
 
 ## Inputs and evidence
 
-Before a long draft, know: topic; reader problem; one-sentence conclusion; verified facts and environment; primary source or direct experiment; human approval point. Ask only when a missing choice changes the article; mark low-risk inferences as assumptions.
+Gather the topic, reader problem, one-line conclusion, verified facts and environment, primary evidence, and human approval point. Ask only if an omission changes the article; label other assumptions.
 
-Prefer author materials and primary evidence. Label observation, sourced fact, interpretation, and future possibility. Never invent results, citations, or product behavior. Store source URLs in frontmatter, not copied pages.
+Prefer author materials and primary evidence. Separate observation, sourced fact, interpretation, and possibility. Never invent results, citations, or behavior. Store source URLs in frontmatter.
 
 ## Default profile
 
@@ -21,7 +21,7 @@ Use at most three 솜솜 callouts. Keep jokes to openings, transitions, or minor
 
 ## Shape and layout
 
-Use helpful parts only:
+Use only relevant parts:
 
 1. Familiar problem and benefit within three sentences
 2. Key term in one line

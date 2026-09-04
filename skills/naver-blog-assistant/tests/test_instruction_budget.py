@@ -24,7 +24,10 @@ class InstructionBudgetTests(unittest.TestCase):
         for reference in ("writing-guide.md", "browser-workflow.md"):
             text = (SKILL_DIR / "references" / reference).read_text(encoding="utf-8")
             with self.subTest(reference=reference):
-                self.assertLessEqual(len(SKILL_TEXT) + len(text), 4_000)
+                route = SKILL_TEXT + text
+                windows_route = route.replace("\n", "\r\n")
+                self.assertLessEqual(len(route), 4_000)
+                self.assertLessEqual(len(windows_route), 4_000)
 
     def test_local_markdown_links_in_skill_exist(self) -> None:
         links = re.findall(r"\[[^\]]+\]\(([^)]+)\)", SKILL_TEXT)
