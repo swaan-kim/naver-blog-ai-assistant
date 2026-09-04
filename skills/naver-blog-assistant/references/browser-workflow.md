@@ -1,44 +1,32 @@
-# Safe Naver editor workflow
+# Naver editor workflow
 
-Read this file only when the user asks to enter or format a draft in Naver Blog.
+Read only for Naver entry or publication.
 
-## Safety boundary
+## Boundary
 
-- Let the user sign in directly.
-- Never request or inspect passwords, one-time codes, cookies, or browser session storage.
-- Do not modify or delete existing posts or saved drafts.
-- Never press the final publication button. Stop at the publication settings screen.
-- Treat unexpected dialogs, editor changes, or ambiguous draft state as a reason to pause.
+- The user signs in; never inspect credentials, codes, cookies, or session storage.
+- Always create a new post and preserve existing posts and drafts.
+- Default to review mode. Publish only on an explicit current-task request.
+- On an ambiguous page or target, stop with `EDITOR_STATE_MISMATCH`; never guess a new coordinate.
+- Keep sessions and diagnostics out of Git.
 
-## Editor procedure
+## Efficient path
 
-1. Inspect the visible page and confirm that it is Naver Blog's editor.
-2. Check whether an existing draft or recovery dialog is present.
-3. Preserve the existing content. Open a separate new editor for the requested post.
-4. Enter the title once in the title field.
-5. Enter the body without duplicating the title.
-6. Apply the requested font, size, alignment, line spacing, heading emphasis, blank paragraphs, and flow indentation.
-7. Set the requested category and tags.
-8. Validate the editor state before saving.
-9. Save as a draft.
-10. Open publication settings, verify the category and tags, and stop for user approval.
+1. Validate the draft file before opening Naver.
+2. Prefer one file-path call such as `prepare_post(draft_path)` when available.
+3. Otherwise inspect the editor once, use labels, roles, or stable selectors, and enter title/body in batches. A documented coordinate is fallback only.
+4. Apply the requested category, tags, font, spacing, heading emphasis, and indentation.
+5. Verify required fields only. Do not retrieve both a full DOM and screenshot or return either on success.
+6. Stop for review. If publication was explicitly requested, recheck the gate and publish once.
 
-## Validation gate
+Never re-send the article body between steps. On failure, save one relevant screenshot, HTML fragment, or trace locally; return only the failed stage and path.
 
-Require all checks to pass before moving to publication settings:
+## Gate
 
-- the title appears exactly once in the title area;
-- every planned paragraph appears once and in order;
-- the body length is within the agreed range or the deviation is disclosed;
-- every heading has a visible separation from the preceding section;
-- the process flow or callout is visually distinct when requested;
-- the category matches the request;
-- tags contain no duplicates;
-- the draft save state is visible;
-- no existing post or draft was overwritten.
-
-If the editor exposes placeholder text such as a quotation source prompt, distinguish the placeholder from saved article content before reporting it as an error.
-
-## Handoff wording
-
-State that the draft has been saved and the publication settings are open. List the validated category and tags, then tell the user that the final publication button is ready for their direct approval.
+- exact title in its field; no duplicate title in the body;
+- planned headings and paragraphs in order;
+- length deviation disclosed;
+- visible heading spacing and nested step indentation;
+- requested category and unique tags;
+- no overwritten content;
+- explicit user intent before publication.
