@@ -2,3 +2,22 @@
 Thumbs.db
 *.tmp
 *.log
+__pycache__/
+*.py[cod]
+
+# Local credentials and browser state
+.env
+.env.*
+!.env.example
+auth/
+sessions/
+storage-state*.json
+*cookies*.json
+
+# Local drafts and browser diagnostics
+drafts/
+diagnostics/
+traces/
+playwright-report/
+test-results/
+*.zip

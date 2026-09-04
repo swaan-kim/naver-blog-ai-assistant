@@ -1,4 +1,5 @@
-# Copy this file and replace the example values.
+# Copy this file, replace the example values, and save the draft to output_file.
+output_file: "drafts/YYYY-MM-DD-topic.md"
 topic: "AI 에이전트와 챗봇의 차이"
 reader_problem: "둘 다 대화형이라 무엇이 다른지 구분하기 어렵다"
 core_conclusion: "챗봇은 답변이 중심이고, 에이전트는 목표를 위해 다음 행동을 선택한다"
@@ -10,17 +11,20 @@ primary_sources:
   - "공식 문서 또는 논문 URL"
 human_approval_point: "사실관계 검수와 최종 발행"
 style:
-  series: "AI 잡학 쩝쩝"
+  series: "솜솜의 AI·AX 잡학 냠냠" # example; replace for another series
   persona: "솜솜"
   length_characters: "1800-2200"
   tone: "발랄한 AI 조수 솜솜이 쉽고 직관적으로 설명하는 테크 블로그"
   explanation_flow: "쉬운 정의 → 비교표 → 생활 비유 → 짧은 실행 단계 → 한 줄 결론"
   procedure_style: "한 단계에 한 행동과 한 문장"
 naver:
-  category: "AI 잡학 쩝쩝"
+  category: "" # required for editor entry; use an existing category in your account
   common_tags:
-    - "AI잡학쩝쩝"
+    - "AI잡학냠냠" # examples; replace for another series
     - "AI조수"
     - "AI기초"
   article_tags: []
-  stop_before_publish: true
+  publication_mode: "review"
+output:
+  show_full_body_in_chat: false
+  compact_result_only: true

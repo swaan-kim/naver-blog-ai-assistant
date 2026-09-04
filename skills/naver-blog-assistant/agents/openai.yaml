@@ -1,4 +1,6 @@
 interface:
   display_name: "솜솜 · 네이버 블로그 AI 조수"
-  short_description: "네이버 글 작성부터 발행 직전 검수까지 안전하게 지원"
-  default_prompt: "Use $naver-blog-assistant to 솜솜의 말투로 네이버 블로그 글을 작성하고 발행 직전까지 안전하게 준비해줘."
+  short_description: "원고는 한 번만 쓰고 네이버 검수까지 간결하게 지원"
+  default_prompt: "Use $naver-blog-assistant to 솜솜의 말투로 원고 파일을 만들고 검증한 뒤, 채팅에는 요약만 알려줘."
+policy:
+  allow_implicit_invocation: true
