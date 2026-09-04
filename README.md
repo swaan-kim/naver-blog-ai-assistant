@@ -1,44 +1,102 @@
-# 솜솜 · Naver Blog AI Assistant
+# 솜솜 · 네이버 블로그 AI 조수
 
-**긴 원고는 파일에 한 번만 쓰고, 검증과 네이버 준비는 짧게 반복하는 Codex 스킬입니다.**
+**긴 원고를 파일 하나로 관리하고, 필요한 부분만 고친 뒤 네이버 발행 직전까지 준비합니다.**
 
-솜솜은 AI·AX를 비개발자도 읽기 쉽게 설명합니다. 짧은 문단, 넉넉한 목차 간격, 단계별 설명을 기본으로 사용하며 기존 글과 임시저장 글은 건드리지 않습니다.
+솜솜은 AI·AX 이야기를 비개발자도 읽기 쉽게 풀어 쓰는 Codex 스킬입니다. 글의 품질과 안전 기준은 유지하면서, 같은 원고를 반복해서 읽고 옮기는 과정을 줄였습니다.
 
-## 무엇이 달라졌나요?
+- ✅ 지금 바로: 원고 작성, 부분 수정, 로컬 검증
+- 🧩 브라우저 도구가 있으면: 네이버 새 편집기에 입력하고 발행 버튼 앞에서 정지
+- 🧪 별도 연결 필요: 원고 파일을 직접 읽는 브라우저 자동화 엔진(Playwright MCP)
 
-- 원고 전문을 채팅과 브라우저 사이에서 반복하지 않습니다.
-- 작은 피드백은 해당 문단만 고칩니다.
-- 글자 수, 제목 중복, 소제목 수, 태그 중복은 로컬 스크립트가 검사합니다.
-- 글쓰기 때는 글쓰기 규칙만, 네이버 입력 때는 브라우저 규칙만 읽습니다.
-- 작업별 실행 지침은 4,000자 이하인지 자동 테스트합니다.
-- 성공 결과는 제목·글자 수·상태만 돌려줍니다.
+[![솜솜의 네이버 자동 입력 예시](media/somsom-naver-auto-input-cover.png)](media/somsom-naver-auto-input.gif)
 
-첫 원고 작성에는 여전히 모델 토큰이 필요합니다. 절감되는 부분은 **원고 재전송, 통째 재작성, 불필요한 화면·DOM 왕복**입니다. 정확한 절감률은 사용 환경에 따라 달라 고정 수치로 약속하지 않습니다.
-
-## 1분 설치
-
-1. **Code → Download ZIP**을 누르거나 [ZIP을 바로 내려받습니다](https://github.com/swaan-kim/naver-blog-ai-assistant/archive/refs/heads/main.zip).
-2. ZIP을 풀고 `skills/naver-blog-assistant` 폴더를 복사합니다.
-3. 아래 위치에 `naver-blog-assistant`라는 이름으로 붙여 넣습니다.
+## 10초 만에 이해하기
 
 ```text
-Windows: C:\Users\사용자이름\.codex\skills\naver-blog-assistant
-macOS/Linux: ~/.codex/skills/naver-blog-assistant
+기존
+요청 → 원고 전문 → 수정할 때 원고 전문 → 브라우저에 원고 전문 → 화면 반복 확인
+
+현재 스킬
+요청 → draft.md 초안 생성 → 필요한 문단만 수정 → 로컬 검증
+
+파일 경로형 엔진 연결 후
+검증된 draft.md의 경로만 전달 → 브라우저에서 일괄 입력
 ```
 
-4. Codex에서 새 작업을 열고 아래 요청문을 사용합니다.
+쉽게 말하면 **글은 그대로 두고, 글을 들고 왔다 갔다 하는 횟수를 줄인 구조**입니다.
 
-> 글 작성만 할 때는 브라우저 도구가 필요 없습니다. 네이버 자동 입력에는 사용하는 Codex 환경의 브라우저 제어 기능이 필요합니다.
+## 무엇을 개선했나요?
+
+| 기존 방식 | 개선 방식 | 줄어드는 부분 | 상태 |
+|---|---|---|---|
+| 작은 수정에도 글 전체를 다시 작성 | 요청받은 문단만 수정 | 재작성 토큰 | ✅ 포함 |
+| 글쓰기·브라우저 규칙을 함께 읽음 | 지금 필요한 규칙만 선택 | 지침 토큰 | ✅ 포함 |
+| 원고를 채팅에 반복 표시 | 로컬 `draft.md`를 기준으로 작업 | 본문 재전송 | ✅ 포함 |
+| AI가 글자 수와 중복을 다시 읽어 검사 | 로컬 스크립트가 검사 | 검증 토큰 | ✅ 포함 |
+| 브라우저가 화면과 DOM을 단계마다 반환 | 저장한 UI 규칙으로 일괄 실행 | 브라우저 왕복 | 🧪 엔진 설계 |
+
+글쓰기 판단은 솜솜이 맡고, 글자 수·제목 중복·소제목 수·태그 중복처럼 답이 정해진 검사는 로컬 프로그램이 맡습니다. 그래서 말투와 내용은 유지하면서 반복 작업만 가벼워집니다.
+
+## 어느 정도 가벼워졌나요?
+
+이 저장소의 이전 지침 구조와 현재 구조, 2,000자 안팎의 대표 원고로 비교한 대략적인 수치입니다.
+
+| 측정 구간 | 기존 | 개선 | 변화 |
+|---|---:|---:|---:|
+| 글쓰기 때 읽는 지침 | 약 2,200토큰 | 약 900토큰 | 약 60% 감소 |
+| 전체 작성·입력 지침 | 약 2,600토큰 | 약 1,300토큰 | 약 50% 감소 |
+| 원고 전달 호출·엔진 연결 시 | 약 1,200토큰 | 수십 토큰 | 약 95% 감소 가능 |
+
+> **중요:** 약 95%는 2,000자 안팎 원고를 본문째 보내는 호출과 파일 경로만 보내는 호출을 비교한 값입니다. 전체 글쓰기 비용이 95% 줄어든다는 뜻은 아닙니다. 파일 경로형 Playwright MCP는 아직 이 저장소에 포함되지 않았으며, 연결했을 때 얻는 실행 구간의 예상 효과입니다.
+
+수치는 OpenAI 토크나이저(AI가 글을 작은 단위로 세는 도구)로 계산한 비교용 값입니다. 실제 사용량은 모델, 대화 길이, 브라우저 도구에 따라 달라집니다. 자세한 원리는 [OpenAI 토큰 계산 안내](https://developers.openai.com/api/docs/guides/token-counting)를 참고하세요.
+
+<details>
+<summary><strong>측정 범위 보기</strong></summary>
+
+- 이전 지침: 커밋 `918701d`의 `SKILL.md`, 글쓰기·페르소나·브라우저 참고 문서
+- 현재 지침: `SKILL.md`와 작업에 필요한 `writing-guide.md` 또는 `browser-workflow.md`
+- 전체 지침: 각 파일을 한 번씩만 읽는 조건
+- 원고 전달: 약 2,000자 한국어 Markdown을 UTF-8 JSON으로 직렬화한 호출과 파일 경로 호출 비교
+- 계산 방식: `tiktoken`의 `o200k_base`
+- 제외 항목: 사용자 대화 기록, 모델 내부 처리, 이미지 입력, 서비스별 캐싱
+
+</details>
+
+## 빠른 설치
+
+### 방법 1. Codex에게 설치 맡기기
+
+Codex에서 다음처럼 요청합니다.
+
+```text
+$skill-installer로
+https://github.com/swaan-kim/naver-blog-ai-assistant 저장소의
+skills/naver-blog-assistant 스킬을 설치해줘.
+```
+
+### 방법 2. ZIP으로 직접 설치하기
+
+1. [Download ZIP](https://github.com/swaan-kim/naver-blog-ai-assistant/archive/refs/heads/main.zip)을 눌러 압축을 풉니다.
+2. `skills/naver-blog-assistant` 폴더를 복사합니다.
+3. 아래 위치에 `naver-blog-assistant` 이름으로 붙여 넣습니다.
+
+```text
+Windows: C:\Users\사용자이름\.agents\skills\naver-blog-assistant
+macOS/Linux: ~/.agents/skills/naver-blog-assistant
+```
+
+Codex가 스킬을 바로 찾지 못하면 앱이나 CLI를 한 번 다시 시작합니다. 설치 위치와 작동 방식은 [OpenAI 공식 Skills 안내](https://developers.openai.com/codex/skills)에서 확인할 수 있습니다.
 
 ## 바로 쓰는 요청문
 
-### 1. 원고 만들기
+### 1. 새 원고 만들기
 
 ```text
 $naver-blog-assistant로 ‘AI 에이전트와 챗봇의 차이’를
 비개발자용 솜솜 말투로 작성해줘.
-내 네이버 카테고리를 모르면 원고를 쓰기 전에 물어봐.
-원고는 drafts/ai-agent-vs-chatbot.md에 한 번만 저장하고 검증해줘.
+내 네이버 카테고리를 모르면 초안을 쓰기 전에 물어봐.
+초안을 drafts/ai-agent-vs-chatbot.md에 만들고 검증해줘.
 채팅에는 본문을 반복하지 말고 경로와 검증 결과만 알려줘.
 ```
 
@@ -52,25 +110,29 @@ drafts/ai-agent-vs-chatbot.md의 ‘실제로는 이렇게 움직여요’ 부�
 ### 3. 네이버에 준비하기
 
 ```text
-검증된 drafts/ai-agent-vs-chatbot.md를 읽어
+검증된 drafts/ai-agent-vs-chatbot.md를 사용해
 기존 글을 건드리지 말고 네이버 새 편집기에 넣어줘.
-목차 앞뒤 간격과 목록 들여쓰기를 적용하고 검수 화면에서 멈춰줘.
+소제목 앞뒤 간격과 목록 들여쓰기를 적용하고
+발행 버튼을 누르기 전 편집기에서 멈춰줘.
 ```
 
-바로 발행하려면 마지막 문장을 `검증을 통과하면 발행해줘`로 명시해야 합니다. 명시하지 않으면 검수 모드가 기본입니다.
+발행까지 원한다면 현재 작업에서 `검증을 통과하면 발행해줘`라고 명확히 요청해야 합니다. 그렇지 않으면 발행 버튼을 누르기 전 편집기에서 멈춥니다.
 
-## 입력표를 쓰면 더 안정적입니다
+## 작동 방식
 
-[article-request.yaml](skills/naver-blog-assistant/assets/article-request.yaml)에서 먼저 여섯 가지 콘텐츠 입력을 채웁니다. 네이버에 넣을 때는 계정에 실제로 존재하는 카테고리 이름도 필요합니다.
+```text
+사용자 요청
+   ↓
+솜솜이 Markdown 원고 파일 생성
+   ↓
+로컬 스크립트가 형식·분량·중복 검사
+   ├─ 브라우저 도구 없음 → 파일 경로와 검증 결과 전달
+   └─ 브라우저 도구 있음 → 새 편집기에 입력 → 발행 직전 정지
+```
 
-1. 설명할 개념이나 도구
-2. 독자가 겪는 문제
-3. 한 문장 결론
-4. 직접 확인한 사실과 환경
-5. 공식 문서·1차 자료·직접 실험
-6. 사람이 판단할 지점
+입력표가 필요하면 [article-request.yaml](skills/naver-blog-assistant/assets/article-request.yaml)을, 나만의 조수를 만들고 싶다면 [persona-template.md](skills/naver-blog-assistant/assets/persona-template.md)를 사용하세요.
 
-완성 원고는 YAML 머리말이 있는 Markdown 파일입니다.
+완성 원고는 다음과 같은 YAML 머리말을 가진 Markdown 파일입니다.
 
 ```yaml
 ---
@@ -82,47 +144,43 @@ sources: []
 ---
 ```
 
-나만의 조수를 만들려면 [persona-template.md](skills/naver-blog-assistant/assets/persona-template.md)를 채워 함께 전달하세요.
-
 ## 로컬 검증
 
-보통은 솜솜이 자동으로 실행하므로 명령어를 입력할 필요가 없습니다. 직접 확인하고 싶다면 설치한 운영체제에 맞는 한 줄을 사용하세요.
+솜솜이 보통 자동으로 실행합니다. 직접 확인하려면 다음 명령을 사용하세요.
 
 Windows PowerShell:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\naver-blog-assistant\scripts\validate_draft.py" "drafts\글파일.md" --json
+python "$env:USERPROFILE\.agents\skills\naver-blog-assistant\scripts\validate_draft.py" "drafts\글파일.md" --json
 ```
 
 macOS/Linux:
 
 ```bash
-python3 ~/.codex/skills/naver-blog-assistant/scripts/validate_draft.py drafts/글파일.md --json
+python3 ~/.agents/skills/naver-blog-assistant/scripts/validate_draft.py drafts/글파일.md --json
 ```
 
-검증 결과에는 원고 전문 대신 통과 여부와 글자·문단·소제목 수만 표시됩니다. 직접 실행할 때는 Python 3.10 이상이 필요하며 외부 패키지는 필요하지 않습니다.
+검증 결과에는 원고 전문 대신 통과 여부와 글자·문단·소제목 수만 표시됩니다. Python 3.10 이상이 필요하며 외부 패키지는 사용하지 않습니다.
 
-기존 Markdown에 YAML 머리말이 없다면 솜솜에게 “이 파일을 원고 템플릿 형식으로 한 번만 변환해줘”라고 요청하면 됩니다.
+## 브라우저 자동화 원칙
 
-## 네이버 자동 입력은 두 단계입니다
+Playwright는 브라우저의 클릭과 입력을 자동화하는 도구입니다. 이 동작은 로컬에서 실행되지만, AI가 원고 전문이나 화면 구조(DOM), 스크린샷을 반복해서 읽으면 토큰이 커집니다. 아래는 현재 스킬이 브라우저 도구에 요구하는 원칙이며, 독립 실행형 엔진의 구현 완료를 뜻하지는 않습니다.
 
-```text
-원고 파일 생성·검증
-        ↓
-브라우저 도구가 새 편집기에 일괄 입력
-        ↓
-사용자 검수 또는 명시적 발행
-```
+- 전체 화면 구조 대신 기능별 요소 찾기 규칙과 작은 화면 상태만 재사용하도록 요청합니다.
+- 고정 좌표보다 버튼 이름·입력란 이름을 먼저 사용합니다.
+- 좌표는 화면 크기와 기준 위치가 확인된 입력 작업에만 허용합니다.
+- 성공 시 DOM·스크린샷·원고 전문을 반환하지 않도록 제한합니다.
+- 화면이 예상과 다르면 추측하지 않고 중단하게 합니다.
 
-Playwright는 브라우저를 클릭하고 입력하는 자동화 도구이며, 그 실행 자체가 모델 토큰을 쓰는 것은 아닙니다. 다만 이 저장소에는 아직 독립 실행형 Playwright 엔진을 묶지 않았습니다. 현재는 설치된 브라우저 제어 도구를 사용하며, 추후 검증된 파일 경로형 실행 엔진을 별도 프로젝트로 연결할 수 있습니다.
+현재 저장소에는 독립 실행형 Playwright 엔진이 포함되어 있지 않습니다. 브라우저 입력은 사용하는 Codex 환경의 브라우저 제어 기능에 의존하며, 파일 경로형 엔진은 실제 네이버 연속 테스트를 통과한 뒤 별도로 연결할 예정입니다.
 
 ## 안전 원칙
 
 - 로그인과 인증은 사용자가 직접 합니다.
 - 비밀번호, 인증번호, 쿠키, 세션 파일을 원고나 Git에 넣지 않습니다.
-- 기존 게시물과 임시저장 글을 수정하거나 덮어쓰지 않습니다.
-- 화면 상태가 예상과 다르면 좌표를 추측하지 않고 중단합니다.
-- 기본값은 검수 모드이며, 현재 작업에서 사용자가 명시한 경우에만 발행합니다.
+- 기존 게시물과 임시저장 글을 덮어쓰지 않도록 설계했습니다.
+- 기본값은 발행 전 대기입니다.
+- 발행은 현재 작업에서 사용자가 명시한 경우에만 진행합니다.
 
 ## 저장소 구조
 
@@ -133,8 +191,7 @@ skills/naver-blog-assistant/
 ├─ references/
 │  ├─ browser-workflow.md
 │  └─ writing-guide.md
-├─ scripts/
-│  └─ validate_draft.py
+├─ scripts/validate_draft.py
 ├─ tests/
 └─ assets/
    ├─ article-request.yaml
@@ -142,14 +199,6 @@ skills/naver-blog-assistant/
    ├─ persona-template.md
    └─ review-checklist.md
 ```
-
-## 현재 범위
-
-- 글 작성과 로컬 검증: 바로 사용 가능
-- 네이버 편집기 입력: 브라우저 제어 기능이 있는 환경에서 사용
-- 고정 셀렉터 기반 Playwright 실행 엔진: 연속 성공 검증 후 별도 공개 예정
-
-실제 자동 입력 예시: [GIF](media/somsom-naver-auto-input.gif) · [정지 화면](media/somsom-naver-auto-input-cover.png)
 
 ## 라이선스
 
