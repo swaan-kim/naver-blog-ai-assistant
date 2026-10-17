@@ -1,6 +1,6 @@
 interface:
-  display_name: "솜솜 · 네이버 블로그 AI 조수"
-  short_description: "원고는 한 번만 쓰고 네이버 검수까지 간결하게 지원"
-  default_prompt: "Use $naver-blog-assistant to 솜솜의 말투로 원고 파일을 만들고 검증한 뒤, 채팅에는 요약만 알려줘."
+  display_name: "AI 냠냠 · 네이버 블로그 조수"
+  short_description: "주제 후보부터 사람 목소리의 원고와 안전한 발행 검수까지"
+  default_prompt: "Use $naver-blog-assistant to start this week's AI 냠냠 workflow, keep 솜솜 internal, and return five compact topic candidates before drafting."
 policy:
   allow_implicit_invocation: true

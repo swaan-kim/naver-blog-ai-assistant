@@ -1,49 +1,37 @@
-# 솜솜 writing guide
+# AI 냠냠 writing guide
 
-Read only for writing or revision; user instructions override defaults.
+Read only for drafting or revision. User instructions override defaults.
 
-## Inputs and evidence
+## Public voice and evidence
 
-Gather the topic, reader problem, one-line conclusion, verified facts and environment, primary evidence, and human approval point. Ask only if an omission changes the article; label other assumptions.
+- The owner is the only public narrator. 솜솜 researches, checks, and edits silently.
+- Promise: “AI 이야기는 쉽게 정리하고, 추천은 직접 써본 뒤에만 합니다.”
+- Lead with an office worker's question or the owner's real scene. Avoid character dialogue, excessive emoji, and repeated AI-style summaries.
+- Mark claims as sourced fact, owner experience, owner interpretation, or unknown. Never invent use, outcomes, citations, or certainty.
+- Prefer official, paper, or public-agency evidence. Use independent reporting for context; never use rumors alone.
 
-Prefer author materials and primary evidence. Separate observation, sourced fact, interpretation, and possibility. Never invent results, citations, or behavior. Store source URLs in frontmatter.
+## Choose one format
 
-## Default profile
+### 3분 AI 정리
 
-Use the user's style when supplied. Otherwise:
+900–1,400 Korean characters and 3–4 headings: what happened → why it matters to me → plain explanation → unknowns → follow-up question.
 
-- Reader: interested in AI·AX, unfamiliar with developer terms
-- Body: 1,800–2,200 Korean characters
-- Voice: friendly and lively without talking down; accuracy first
-- Roles: the author judges; 솜솜 explains and marks uncertainty
+### 직접 써봤습니다
 
-Use at most three 솜솜 callouts. Keep jokes to openings, transitions, or minor failures; emoji to headings or callouts. Define an English term in plain Korean on first use. Never stack unexplained terms.
+1,500–2,100 characters and 4–5 headings: why I used it → what helped → where I got stuck → whether I would reuse it → who it suits. Include only the approved label `처음 써봄`, `몇 번 써봄`, or `계속 쓰는 중`, and ground every experience claim in the four owner notes in `brief.md`.
+
+### 자료를 확인해봤습니다
+
+1,500–2,100 characters and 4–5 headings: reader question → confirmed facts → plain meaning → limits or competing view → likely impact. Separate official and independent sources. For medical, legal, financial, or political topics, explain the phenomenon only and give no personal advice.
 
 ## Shape and layout
 
-Use only relevant parts:
+- Title: reader question plus benefit; no series prefix and no duplicate title in the body.
+- One idea and 1–3 sentences per paragraph. Leave a blank line before and after every heading.
+- Indent lists only one level; use at most one table. Do not restate a table in prose.
+- Naver: Nanum Gothic 15 pt, left aligned, 180% line spacing.
+- Use exactly one cover and one real screen or explanatory diagram. Reuse the owner's dog asset only when supplied; otherwise use a temporary text-only cover.
+- If either image is AI-generated or AI-edited, set `ai_media: "true"` so the Naver AI-use setting can be applied.
+- End with one useful next action, not a generic summary.
 
-1. Familiar problem and benefit within three sentences
-2. Key term in one line
-3. One everyday analogy or compact comparison
-4. Real workflow in five to seven short steps
-5. For an experiment, one failure, its check, and observed result
-6. One takeaway and the next question
-
-- One idea and one to three sentences per paragraph; four to six direct headings.
-- Leave one full blank paragraph before and after headings.
-- Never attach a heading to a preceding paragraph, table, or image.
-- Indent steps, bullets, examples, and support one level.
-- Use a list, table, or callout for three or more parallel items.
-- Give each step one action and one supporting sentence.
-- Explain the intuitive version first; do not repeat a table or flow in prose.
-- In Naver when requested: Nanum Gothic 15 pt, left aligned, 180% line spacing.
-
-## Metadata and edits
-
-- Title: question or problem plus practical benefit; 25–40 Korean characters is a guide.
-- Never repeat the title in the body.
-- Use the user's category; do not assume it exists.
-- Use three series tags plus three or four topic tags, without duplicates.
-- Apply `더 짧게`, `직관적으로`, `단계별로`, and wider spacing across the article.
-- Patch only the affected passage unless a full rewrite is requested.
+Patch only the requested section after approval. Do not regenerate accepted sections.

@@ -21,7 +21,12 @@ class InstructionBudgetTests(unittest.TestCase):
         self.assertIn("$naver-blog-assistant", openai_yaml)
 
     def test_each_runtime_path_stays_under_4000_characters(self) -> None:
-        for reference in ("writing-guide.md", "browser-workflow.md"):
+        for reference in (
+            "writing-guide.md",
+            "browser-workflow.md",
+            "editorial-workflow.md",
+            "measurement-guide.md",
+        ):
             text = (SKILL_DIR / "references" / reference).read_text(encoding="utf-8")
             with self.subTest(reference=reference):
                 route = SKILL_TEXT + text
@@ -43,9 +48,22 @@ class InstructionBudgetTests(unittest.TestCase):
             "assets/article-request.yaml",
             "assets/persona-template.md",
             "scripts/validate_draft.py",
+            "scripts/validate_package.py",
         ):
             with self.subTest(path=relative_path):
                 self.assertIn(relative_path, SKILL_TEXT)
+                self.assertTrue((SKILL_DIR / relative_path).is_file())
+
+    def test_pilot_templates_exist(self) -> None:
+        for relative_path in (
+            "assets/brief-template.md",
+            "assets/draft-template.md",
+            "assets/content-index-template.json",
+            "assets/hub-draft-template.md",
+            "assets/monthly-review-template.md",
+            "assets/topic-candidates-template.md",
+        ):
+            with self.subTest(path=relative_path):
                 self.assertTrue((SKILL_DIR / relative_path).is_file())
 
     def test_readme_local_links_exist(self) -> None:

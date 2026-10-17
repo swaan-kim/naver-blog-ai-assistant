@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "series": "AI 냠냠",
+  "category": "AI 냠냠",
+  "hub": {
+    "title": "AI 냠냠 글 모아보기",
+    "status": "draft",
+    "url": ""
+  },
+  "pilot": {
+    "target_posts": 8,
+    "trend_target": 6,
+    "evergreen_target": 2
+  },
+  "posts": []
+}

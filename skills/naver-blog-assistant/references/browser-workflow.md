@@ -1,34 +1,27 @@
 # Naver editor workflow
 
-Read only for Naver entry or publication.
+Read only for editor preparation or publication.
 
 ## Boundary
 
-- The user signs in; never inspect credentials, codes, cookies, or session storage.
-- Always create a new post and preserve existing posts and drafts.
-- Default to review mode. Publish only on an explicit current-task request.
-- On an ambiguous page or target, stop with `EDITOR_STATE_MISMATCH`; never guess a new coordinate.
-- Keep sessions and diagnostics out of Git.
+- The owner signs in. Never inspect credentials, codes, cookies, or session storage.
+- Always open a new post; never change the nine legacy posts or an unrelated draft.
+- Prepare from the local `draft.md` path. Do not relay its body through the model.
+- If an expected locator is missing, stop with `SELECTOR_MISS`; never guess coordinates.
+- Keep sessions and diagnostics out of Git. Return no DOM or screenshot on success.
 
-## Efficient path
+## Prepare
 
-1. Validate the draft file before opening Naver.
-2. Prefer one file-path call such as `prepare_post(draft_path)` when available.
-3. Otherwise inspect the editor once, use labels, roles, or stable selectors, and enter title/body in batches.
-4. Apply the requested category, tags, font, spacing, heading emphasis, and indentation.
-5. Verify required fields only. Do not retrieve both a full DOM and screenshot or return either on success.
-6. Stop for review. If publication was explicitly requested, recheck the gate and publish once.
+1. Run package validation at stage `prepare`.
+2. Enter title, body, category `AI 냠냠`, unique tags, cover, evidence image, and requested formatting in batches.
+3. Apply the Naver AI-use setting when `ai_media` is true.
+4. Verify only title, section order, category, images, links, and unresolved-marker count.
+5. Stop in the editor for owner review. Do not click publish.
 
-Never re-send the article body between steps. On failure, save one relevant screenshot, HTML fragment, or trace locally; return only the failed stage and path.
+## Publish transaction
 
-When the browser engine supports a local UI profile, reuse only the expected URL/frame, viewport, candidate locators, and last successful locator. Do not cache a full DOM or transient node references. A coordinate is a final fallback for reversible input only: require a matching viewport, zoom, and nearby anchor, then verify the entered value. Never use a coordinate fallback for publication.
+Proceed only when the owner sends exactly `발행` for the current post. Run stage `publish`, confirm the expected title, then publish once.
 
-## Gate
+After a successful post, update the new-series hub and the previous new-system post's next link. Never edit legacy posts. If either link update fails, report `PARTIAL_LINK_UPDATE` with the published URL; do not publish a duplicate.
 
-- exact title in its field; no duplicate title in the body;
-- planned headings and paragraphs in order;
-- length deviation disclosed;
-- visible heading spacing and nested step indentation;
-- requested category and unique tags;
-- no overwritten content;
-- explicit user intent before publication.
+The first new-series post needs the hub link but may have no previous or paired link. A coordinate fallback is never allowed for publication or destructive edits.

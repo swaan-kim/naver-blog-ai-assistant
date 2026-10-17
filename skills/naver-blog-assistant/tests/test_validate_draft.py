@@ -211,7 +211,7 @@ class DraftValidationTests(unittest.TestCase):
 
         self.assertIn("FIELD_INVALID", codes(result))
 
-    def test_bundled_template_requires_real_title_and_category(self) -> None:
+    def test_bundled_template_requires_real_title_and_media_paths(self) -> None:
         template = (
             Path(__file__).resolve().parents[1] / "assets" / "draft-template.md"
         ).read_text(encoding="utf-8")
@@ -220,12 +220,11 @@ class DraftValidationTests(unittest.TestCase):
 
         self.assertFalse(result["ok"])
         self.assertEqual(metadata["title"], "")
-        self.assertEqual(metadata["category"], "")
         messages = [
             item["message"] for item in result["errors"] if item["code"] == "FIELD_INVALID"
         ]
         self.assertTrue(any("title" in message for message in messages))
-        self.assertTrue(any("category" in message for message in messages))
+        self.assertTrue(any("cover_image" in message for message in messages))
 
     def test_unclosed_fence_is_rejected(self) -> None:
         body = "도입 문단\n\n```text\n닫히지 않은 코드"
@@ -262,6 +261,61 @@ class DraftValidationTests(unittest.TestCase):
         )
 
         self.assertNotIn("PARAGRAPH_SPACING", codes(result))
+
+    def test_pilot_format_uses_its_own_length_and_heading_limits(self) -> None:
+        body = "도입입니다.\n\n" + "\n\n".join(
+            f"## 소제목 {index}\n\n" + ("한글설명" * 75)
+            for index in range(1, 4)
+        )
+        text = (
+            "---\n"
+            'post_id: "2026-10-18-test"\n'
+            'title: "직장인을 위한 AI 발표 쉽게 읽기"\n'
+            'format: "3분 AI 정리"\n'
+            'category: "AI 냠냠"\n'
+            'tags: ["AI냠냠", "AI발표"]\n'
+            'cover_image: "cover.png"\n'
+            'evidence_image: "evidence.png"\n'
+            'images: ["cover.png", "evidence.png"]\n'
+            'ai_media: "false"\n'
+            'sources: ["official|https://example.com"]\n'
+            'hub_url: "https://blog.naver.com/hub"\n'
+            'previous_url: ""\n'
+            'pair_url: ""\n'
+            'cta: "공식 발표를 직접 확인해보세요."\n'
+            'status: "draft"\n'
+            "---\n\n"
+            f"{body}\n"
+        )
+
+        result = validate_draft.validate_text(text)
+
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["summary"]["format"], "3분 AI 정리")
+
+    def test_unresolved_marker_possible_secret_and_multiple_tables_block(self) -> None:
+        body = (
+            "[[확인 필요]] sk-abcdefghijklmnopqrstuvwxyz\n\n"
+            "항목 | 값\n--- | ---\nA | B\n\n"
+            "항목 | 값\n--- | ---\nC | D"
+        )
+        result = validate_draft.validate_text(
+            make_draft(body), min_chars=1, max_chars=500, min_headings=0
+        )
+
+        self.assertIn("UNRESOLVED_MARKER", codes(result))
+        self.assertIn("POSSIBLE_SECRET", codes(result))
+        self.assertIn("TABLE_LIMIT", codes(result))
+
+    def test_more_than_three_sentences_in_one_paragraph_is_rejected(self) -> None:
+        result = validate_draft.validate_text(
+            make_draft("하나입니다. 둘입니다. 셋입니다. 넷입니다."),
+            min_chars=1,
+            max_chars=500,
+            min_headings=0,
+        )
+
+        self.assertIn("PARAGRAPH_SENTENCE_LIMIT", codes(result))
 
 
 if __name__ == "__main__":

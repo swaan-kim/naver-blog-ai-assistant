@@ -23,12 +23,32 @@ DEFAULT_MIN_CHARS = 1_800
 DEFAULT_MAX_CHARS = 2_200
 DEFAULT_MIN_HEADINGS = 4
 DEFAULT_MAX_HEADINGS = 6
+FORMAT_LIMITS = {
+    "3분 AI 정리": (900, 1_400, 3, 4),
+    "직접 써봤습니다": (1_500, 2_100, 4, 5),
+    "자료를 확인해봤습니다": (1_500, 2_100, 4, 5),
+}
 MAX_REPORTED_PROBLEMS = 12
 MAX_SUMMARY_TITLE_CHARS = 120
 REQUIRED_FIELDS = ("title", "category", "tags", "images")
+PILOT_REQUIRED_FIELDS = (
+    "post_id",
+    "format",
+    "cover_image",
+    "evidence_image",
+    "ai_media",
+    "sources",
+    "hub_url",
+    "previous_url",
+    "pair_url",
+    "cta",
+    "status",
+)
 HANGUL_RE = re.compile(r"[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]")
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
 LIST_RE = re.compile(r"^\s*(?:[-+*]|\d+[.)])\s+\S")
+UNRESOLVED_RE = re.compile(r"\[\[\s*확인\s*필요\s*\]\]")
+SECRET_RE = re.compile(r"(?:sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16})")
 
 
 @dataclass(frozen=True)
@@ -311,6 +331,19 @@ def _layout_metrics_and_problems(
                 )
             )
 
+    for index, kind in enumerate(kinds):
+        if kind != "prose":
+            continue
+        sentence_endings = len(re.findall(r"[.!?](?:[\"'’”)]*)", body_lines[index]))
+        if sentence_endings > 3:
+            problems.append(
+                Problem(
+                    "PARAGRAPH_SENTENCE_LIMIT",
+                    "Keep each paragraph to one to three sentences.",
+                    body_start_line + index,
+                )
+            )
+
     paragraph_count = 0
     previous_kind = "blank"
     for kind in kinds:
@@ -323,10 +356,10 @@ def _layout_metrics_and_problems(
 def validate_text(
     text: str,
     *,
-    min_chars: int = DEFAULT_MIN_CHARS,
-    max_chars: int = DEFAULT_MAX_CHARS,
-    min_headings: int = DEFAULT_MIN_HEADINGS,
-    max_headings: int = DEFAULT_MAX_HEADINGS,
+    min_chars: int | None = None,
+    max_chars: int | None = None,
+    min_headings: int | None = None,
+    max_headings: int | None = None,
 ) -> dict[str, Any]:
     errors: list[Problem] = []
     warnings: list[Problem] = []
@@ -349,14 +382,36 @@ def validate_text(
                 "images": 0,
                 "sources": 0,
                 "title_in_body": 0,
+                "format": "",
+                "unresolved_markers": 0,
+                "tables": 0,
             },
             errors,
             warnings,
         )
 
+    raw_format = metadata.get("format", "")
+    article_format = raw_format if isinstance(raw_format, str) else ""
+    defaults = FORMAT_LIMITS.get(
+        article_format,
+        (DEFAULT_MIN_CHARS, DEFAULT_MAX_CHARS, DEFAULT_MIN_HEADINGS, DEFAULT_MAX_HEADINGS),
+    )
+    min_chars = defaults[0] if min_chars is None else min_chars
+    max_chars = defaults[1] if max_chars is None else max_chars
+    min_headings = defaults[2] if min_headings is None else min_headings
+    max_headings = defaults[3] if max_headings is None else max_headings
+
     for field in REQUIRED_FIELDS:
         if field not in metadata:
             errors.append(Problem("FIELD_MISSING", f"Required frontmatter field is missing: {field}"))
+
+    pilot_mode = article_format in FORMAT_LIMITS
+    if pilot_mode:
+        for field in PILOT_REQUIRED_FIELDS:
+            if field not in metadata:
+                errors.append(
+                    Problem("FIELD_MISSING", f"Pilot frontmatter field is missing: {field}")
+                )
 
     title = metadata.get("title", "")
     category = metadata.get("category", "")
@@ -387,6 +442,47 @@ def validate_text(
     if duplicate_tags:
         errors.append(Problem("TAG_DUPLICATE", "Remove duplicate tags."))
 
+    if pilot_mode:
+        if category != "AI 냠냠":
+            errors.append(Problem("CATEGORY_INVALID", "Pilot posts must use category 'AI 냠냠'."))
+
+        for field in ("post_id", "cover_image", "evidence_image", "hub_url", "cta", "status"):
+            value = metadata.get(field, "")
+            if not isinstance(value, str) or not value.strip():
+                errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
+
+        for field in ("previous_url", "pair_url"):
+            value = metadata.get(field, "")
+            if not isinstance(value, str):
+                errors.append(Problem("FIELD_INVALID", f"{field} must be a string."))
+
+        ai_media = metadata.get("ai_media", "")
+        if ai_media not in {"true", "false"}:
+            errors.append(Problem("AI_MEDIA_INVALID", "ai_media must be 'true' or 'false'."))
+
+        if isinstance(images, list):
+            expected_images = [metadata.get("cover_image", ""), metadata.get("evidence_image", "")]
+            if len(images) != 2 or images != expected_images:
+                errors.append(
+                    Problem(
+                        "IMAGES_INVALID",
+                        "images must contain the cover image and evidence image once, in that order.",
+                    )
+                )
+
+        if isinstance(sources, list):
+            if not sources:
+                errors.append(Problem("SOURCES_MISSING", "Pilot posts need at least one source."))
+            allowed_prefixes = ("official|", "paper|", "public-agency|", "independent|", "owner-experience|")
+            invalid_sources = [source for source in sources if not source.startswith(allowed_prefixes)]
+            if invalid_sources:
+                errors.append(
+                    Problem(
+                        "SOURCE_LABEL_INVALID",
+                        "Prefix each source with official, paper, public-agency, independent, or owner-experience.",
+                    )
+                )
+
     visible_body = _visible_body(body_lines)
     body_chars = len(visible_body)
     hangul_chars = len(HANGUL_RE.findall(visible_body))
@@ -402,6 +498,24 @@ def validate_text(
         errors.append(
             Problem("BODY_TOO_LONG", f"Body has {body_chars} characters; maximum is {max_chars}.")
         )
+
+    unresolved_count = len(UNRESOLVED_RE.findall(text))
+    if unresolved_count:
+        errors.append(
+            Problem(
+                "UNRESOLVED_MARKER",
+                f"Remove {unresolved_count} '[[확인 필요]]' marker(s) before preparation.",
+            )
+        )
+
+    if SECRET_RE.search(text):
+        errors.append(
+            Problem("POSSIBLE_SECRET", "Remove possible API keys or access credentials from the draft.")
+        )
+
+    table_count = sum(1 for line in body_lines if _is_table_divider(line))
+    if table_count > 1:
+        errors.append(Problem("TABLE_LIMIT", "Use at most one Markdown table."))
 
     title_in_body_count = 0
     if isinstance(title, str) and title.strip():
@@ -453,6 +567,9 @@ def validate_text(
             "images": len(images) if isinstance(images, list) else 0,
             "sources": len(sources) if isinstance(sources, list) else 0,
             "title_in_body": title_in_body_count,
+            "format": article_format if isinstance(article_format, str) else "",
+            "unresolved_markers": unresolved_count,
+            "tables": table_count,
         },
         errors,
         warnings,
@@ -462,10 +579,10 @@ def validate_text(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("draft", type=Path, help="UTF-8 Markdown draft to validate")
-    parser.add_argument("--min-chars", type=int, default=DEFAULT_MIN_CHARS)
-    parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
-    parser.add_argument("--min-headings", type=int, default=DEFAULT_MIN_HEADINGS)
-    parser.add_argument("--max-headings", type=int, default=DEFAULT_MAX_HEADINGS)
+    parser.add_argument("--min-chars", type=int)
+    parser.add_argument("--max-chars", type=int)
+    parser.add_argument("--min-headings", type=int)
+    parser.add_argument("--max-headings", type=int)
     parser.add_argument(
         "--json",
         action="store_true",
@@ -480,10 +597,20 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     args = build_parser().parse_args(argv)
     if (
-        args.min_chars < 0
-        or args.max_chars < args.min_chars
-        or args.min_headings < 0
-        or args.max_headings < args.min_headings
+        (args.min_chars is not None and args.min_chars < 0)
+        or (args.max_chars is not None and args.max_chars < 0)
+        or (
+            args.min_chars is not None
+            and args.max_chars is not None
+            and args.max_chars < args.min_chars
+        )
+        or (args.min_headings is not None and args.min_headings < 0)
+        or (args.max_headings is not None and args.max_headings < 0)
+        or (
+            args.min_headings is not None
+            and args.max_headings is not None
+            and args.max_headings < args.min_headings
+        )
     ):
         print(
             json.dumps(
