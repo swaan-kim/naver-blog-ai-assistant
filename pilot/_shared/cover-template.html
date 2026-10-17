@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 냠냠 표지 템플릿</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: #ede7dc; }
+    body { display: grid; place-items: center; font-family: "Nanum Gothic", "Malgun Gothic", sans-serif; }
+    .cover {
+      position: relative;
+      width: 1200px;
+      height: 675px;
+      overflow: hidden;
+      color: #172038;
+      background-image:
+        linear-gradient(90deg, rgba(250,247,240,.98) 0%, rgba(250,247,240,.92) 34%, rgba(250,247,240,.20) 64%, rgba(250,247,240,0) 100%),
+        url("./media/somsom-master.png");
+      background-size: cover;
+      background-position: center;
+    }
+    .copy { position: absolute; left: 72px; top: 68px; width: 510px; }
+    .label { display: inline-block; padding: 10px 18px; border-radius: 999px; background: #ffffffd9; color: #607066; font-size: 25px; font-weight: 700; letter-spacing: .02em; }
+    h1 { margin: 30px 0 24px; font-size: 58px; line-height: 1.22; letter-spacing: -.045em; word-break: keep-all; }
+    p { margin: 0; width: 440px; color: #4d586c; font-size: 25px; line-height: 1.55; font-weight: 700; word-break: keep-all; }
+  </style>
+</head>
+<body>
+  <main class="cover" aria-label="AI 냠냠 블로그 표지">
+    <section class="copy">
+      <span class="label">AI 냠냠</span>
+      <h1 id="cover-title">AI가 궁금할 때 다시 찾는 쉬운 안내서</h1>
+      <p>쉽게 정리하고, 추천은 직접 써본 뒤에만 합니다.</p>
+    </section>
+  </main>
+  <script>
+    const title = new URLSearchParams(window.location.search).get("title");
+    if (title) document.querySelector("#cover-title").textContent = title;
+  </script>
+</body>
+</html>

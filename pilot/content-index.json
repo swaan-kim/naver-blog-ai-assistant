@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "series": "AI 냠냠",
+  "category": "AI 냠냠",
+  "brand_promise": "AI 이야기는 쉽게 정리하고, 추천은 직접 써본 뒤에만 합니다.",
+  "hub": {
+    "id": "series-hub",
+    "title": "AI가 궁금할 때 다시 찾는 곳: AI 냠냠 목차",
+    "status": "draft",
+    "draft_path": "hub/draft.md",
+    "cover_path": "hub/media/cover.png",
+    "url": ""
+  },
+  "pilot": {
+    "target_posts": 8,
+    "published_posts": 0,
+    "trend_target": 6,
+    "evergreen_target": 2,
+    "completed": false
+  },
+  "assets": {
+    "mascot_path": "_shared/media/somsom-master.png",
+    "mascot_sha256": "2B4C480EAB345C28F15E14A8261A124C6AC7C8E9B3C02A48A7BBB3000128E0E8",
+    "cover_template": "_shared/cover-template.html"
+  },
+  "posts": [],
+  "updated_at": "2026-10-18T00:00:00+09:00"
+}

@@ -293,6 +293,29 @@ class DraftValidationTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["summary"]["format"], "3분 AI 정리")
 
+    def test_series_hub_uses_shorter_limits_and_one_cover(self) -> None:
+        body = "도입입니다. " + ("쉬운 설명을 모아둡니다 " * 22) + "마칩니다.\n\n" + "\n\n".join(
+            f"## 목차 {index}\n\n" + ("새 글을 연결합니다 " * 8) + "마칩니다."
+            for index in range(1, 4)
+        )
+        text = (
+            "---\n"
+            'title: "AI가 궁금할 때 다시 찾는 곳"\n'
+            'format: "AI 냠냠 목차"\n'
+            'category: "AI 냠냠"\n'
+            'tags: ["AI냠냠"]\n'
+            'images: ["cover.png"]\n'
+            'ai_media: "true"\n'
+            'sources: []\n'
+            "---\n\n"
+            f"{body}\n"
+        )
+
+        result = validate_draft.validate_text(text)
+
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["summary"]["format"], "AI 냠냠 목차")
+
     def test_unresolved_marker_possible_secret_and_multiple_tables_block(self) -> None:
         body = (
             "[[확인 필요]] sk-abcdefghijklmnopqrstuvwxyz\n\n"

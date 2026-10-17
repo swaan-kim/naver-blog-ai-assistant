@@ -1,10 +1,12 @@
 ---
 title: "AI 냠냠 글 모아보기"
+format: "AI 냠냠 목차"
 category: "AI 냠냠"
 tags:
   - "AI냠냠"
 images:
   - "임시-텍스트-표지-경로"
+ai_media: "false"
 sources: []
 ---
 

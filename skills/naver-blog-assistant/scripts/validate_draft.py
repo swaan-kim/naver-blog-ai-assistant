@@ -28,6 +28,8 @@ FORMAT_LIMITS = {
     "직접 써봤습니다": (1_500, 2_100, 4, 5),
     "자료를 확인해봤습니다": (1_500, 2_100, 4, 5),
 }
+HUB_FORMAT = "AI 냠냠 목차"
+HUB_LIMITS = (500, 1_400, 3, 5)
 MAX_REPORTED_PROBLEMS = 12
 MAX_SUMMARY_TITLE_CHARS = 120
 REQUIRED_FIELDS = ("title", "category", "tags", "images")
@@ -392,9 +394,13 @@ def validate_text(
 
     raw_format = metadata.get("format", "")
     article_format = raw_format if isinstance(raw_format, str) else ""
-    defaults = FORMAT_LIMITS.get(
-        article_format,
-        (DEFAULT_MIN_CHARS, DEFAULT_MAX_CHARS, DEFAULT_MIN_HEADINGS, DEFAULT_MAX_HEADINGS),
+    defaults = (
+        HUB_LIMITS
+        if article_format == HUB_FORMAT
+        else FORMAT_LIMITS.get(
+            article_format,
+            (DEFAULT_MIN_CHARS, DEFAULT_MAX_CHARS, DEFAULT_MIN_HEADINGS, DEFAULT_MAX_HEADINGS),
+        )
     )
     min_chars = defaults[0] if min_chars is None else min_chars
     max_chars = defaults[1] if max_chars is None else max_chars
@@ -406,12 +412,18 @@ def validate_text(
             errors.append(Problem("FIELD_MISSING", f"Required frontmatter field is missing: {field}"))
 
     pilot_mode = article_format in FORMAT_LIMITS
+    hub_mode = article_format == HUB_FORMAT
     if pilot_mode:
         for field in PILOT_REQUIRED_FIELDS:
             if field not in metadata:
                 errors.append(
                     Problem("FIELD_MISSING", f"Pilot frontmatter field is missing: {field}")
                 )
+
+    if hub_mode:
+        for field in ("format", "ai_media"):
+            if field not in metadata:
+                errors.append(Problem("FIELD_MISSING", f"Hub frontmatter field is missing: {field}"))
 
     title = metadata.get("title", "")
     category = metadata.get("category", "")
@@ -470,18 +482,26 @@ def validate_text(
                     )
                 )
 
-        if isinstance(sources, list):
-            if not sources:
-                errors.append(Problem("SOURCES_MISSING", "Pilot posts need at least one source."))
-            allowed_prefixes = ("official|", "paper|", "public-agency|", "independent|", "owner-experience|")
-            invalid_sources = [source for source in sources if not source.startswith(allowed_prefixes)]
-            if invalid_sources:
-                errors.append(
-                    Problem(
-                        "SOURCE_LABEL_INVALID",
-                        "Prefix each source with official, paper, public-agency, independent, or owner-experience.",
-                    )
+    if hub_mode:
+        if category != "AI 냠냠":
+            errors.append(Problem("CATEGORY_INVALID", "The hub must use category 'AI 냠냠'."))
+        if metadata.get("ai_media") not in {"true", "false"}:
+            errors.append(Problem("AI_MEDIA_INVALID", "ai_media must be 'true' or 'false'."))
+        if isinstance(images, list) and len(images) != 1:
+            errors.append(Problem("IMAGES_INVALID", "The hub must contain exactly one cover image."))
+
+    if pilot_mode and isinstance(sources, list):
+        if not sources:
+            errors.append(Problem("SOURCES_MISSING", "Pilot posts need at least one source."))
+        allowed_prefixes = ("official|", "paper|", "public-agency|", "independent|", "owner-experience|")
+        invalid_sources = [source for source in sources if not source.startswith(allowed_prefixes)]
+        if invalid_sources:
+            errors.append(
+                Problem(
+                    "SOURCE_LABEL_INVALID",
+                    "Prefix each source with official, paper, public-agency, independent, or owner-experience.",
                 )
+            )
 
     visible_body = _visible_body(body_lines)
     body_chars = len(visible_body)
