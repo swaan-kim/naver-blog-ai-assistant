@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -24,6 +25,11 @@ BRIEF_FIELDS = (
     "format",
     "risk_level",
     "reader_question",
+    "primary_query",
+    "reader_reward",
+    "owner_angle",
+    "next_link_plan",
+    "selected_title",
     "why_now",
     "work_relevance",
     "evidence_level",
@@ -86,6 +92,20 @@ def section_bullets(lines: list[str], heading: str) -> list[str]:
             item = line.lstrip()[1:].strip()
             if item:
                 items.append(item)
+    return items
+
+
+def section_numbered_items(lines: list[str], heading: str) -> list[str]:
+    items: list[str] = []
+    active = False
+    for line in lines:
+        if line.startswith("## "):
+            active = line.strip() == f"## {heading}"
+            continue
+        if active:
+            match = re.match(r"^\s*\d+[.)]\s+(.+?)\s*$", line)
+            if match:
+                items.append(match.group(1))
     return items
 
 
@@ -213,14 +233,25 @@ def validate_brief(
                     )
                 )
 
-    if metadata.get("topic_status") != "approved":
+    for field in ("topic_status", "outline_status", "final_status"):
+        if metadata.get(field) not in {"pending", "approved"}:
+            errors.append(
+                problem(
+                    "APPROVAL_STATUS_INVALID",
+                    f"{field} must be pending or approved.",
+                    "brief.md",
+                )
+            )
+
+    if stage in {"prepare", "publish"} and metadata.get("topic_status") != "approved":
         errors.append(problem("TOPIC_NOT_APPROVED", "The owner has not approved the topic.", "brief.md"))
-    if metadata.get("outline_status") != "approved":
+    if stage in {"prepare", "publish"} and metadata.get("outline_status") != "approved":
         errors.append(problem("OUTLINE_NOT_APPROVED", "The owner has not approved the outline.", "brief.md"))
     if stage == "publish" and metadata.get("final_status") != "approved":
         errors.append(problem("FINAL_NOT_APPROVED", "The owner has not approved the final text.", "brief.md"))
 
-    outline = section_bullets(body, "승인된 목차")
+    outline_heading = "제안 목차" if stage == "proposal" else "승인된 목차"
+    outline = section_bullets(body, outline_heading)
     expected = (3, 4) if article_format == "3분 AI 정리" else (4, 5)
     if not expected[0] <= len(outline) <= expected[1]:
         errors.append(
@@ -248,7 +279,11 @@ def load_index(path: Path, errors: list[dict[str, str]]) -> dict[str, Any]:
 
 
 def validate_index(
-    index: dict[str, Any], brief: dict[str, Any], draft: dict[str, Any], errors: list[dict[str, str]]
+    index: dict[str, Any],
+    brief: dict[str, Any],
+    draft: dict[str, Any],
+    stage: str,
+    errors: list[dict[str, str]],
 ) -> dict[str, int]:
     if (
         index.get("schema_version") != 1
@@ -258,7 +293,10 @@ def validate_index(
         errors.append(problem("INDEX_SCHEMA_INVALID", "Use schema version 1 and category AI 냠냠.", "content-index.json"))
 
     hub = index.get("hub")
-    if not isinstance(hub, dict) or hub.get("status") != "published" or not hub.get("url"):
+    if (
+        stage in {"prepare", "publish"}
+        and (not isinstance(hub, dict) or hub.get("status") != "published" or not hub.get("url"))
+    ):
         errors.append(problem("HUB_NOT_PUBLISHED", "Publish the new-series hub before a pilot post.", "content-index.json"))
 
     posts = index.get("posts")
@@ -295,7 +333,7 @@ def validate_index(
                 "draft.md",
             )
         )
-    if isinstance(hub, dict) and draft.get("hub_url") != hub.get("url"):
+    if isinstance(hub, dict) and draft.get("hub_url") != hub.get("url", ""):
         errors.append(problem("HUB_LINK_MISMATCH", "draft hub_url must match the index hub URL.", "draft.md"))
 
     counts = {"trend": 0, "evergreen": 0}
@@ -338,7 +376,8 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
 
     if brief:
         validate_brief(brief, brief_body, stage, errors)
-        approved_outline = section_bullets(brief_body, "승인된 목차")
+        outline_heading = "제안 목차" if stage == "proposal" else "승인된 목차"
+        approved_outline = section_bullets(brief_body, outline_heading)
         actual_headings = draft_headings(draft_body)
         if approved_outline and actual_headings != approved_outline:
             errors.append(
@@ -364,6 +403,50 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
         for field in ("post_id", "format"):
             if brief.get(field) != draft.get(field):
                 errors.append(problem("BRIEF_DRAFT_MISMATCH", f"{field} differs between files.", "draft.md"))
+        title_candidates = section_numbered_items(brief_body, "제목 후보")
+        if brief.get("selected_title") != draft.get("title"):
+            errors.append(
+                problem(
+                    "SELECTED_TITLE_MISMATCH",
+                    "brief selected_title must equal the draft title.",
+                    "draft.md",
+                )
+            )
+        if draft.get("title") not in title_candidates:
+            errors.append(
+                problem(
+                    "TITLE_NOT_IN_CANDIDATES",
+                    "The draft title must be one of the three title candidates.",
+                    "draft.md",
+                )
+            )
+        brief_sources: list[str] = []
+        for value in (brief.get("primary_sources", []), brief.get("independent_sources", [])):
+            if isinstance(value, list):
+                brief_sources.extend(item for item in value if isinstance(item, str))
+        draft_source_list = draft.get("sources", [])
+        if isinstance(draft_source_list, list) and sorted(brief_sources) != sorted(draft_source_list):
+            errors.append(
+                problem(
+                    "SOURCE_LIST_MISMATCH",
+                    "Draft sources must match the brief source lists.",
+                    "draft.md",
+                )
+            )
+        for field in ("cover_image", "evidence_image"):
+            value = draft.get(field, "")
+            image_path = (post_dir / value).resolve() if isinstance(value, str) else post_dir
+            try:
+                image_path.relative_to(post_dir.resolve())
+            except ValueError:
+                errors.append(problem("MEDIA_PATH_INVALID", f"{field} must stay inside the post folder.", "draft.md"))
+            else:
+                if not image_path.is_file():
+                    errors.append(problem("MEDIA_FILE_MISSING", f"Missing file for {field}.", "draft.md"))
+        if stage == "proposal" and draft.get("status") != "proposal":
+            errors.append(problem("DRAFT_NOT_PROPOSAL", "Proposal validation requires status proposal.", "draft.md"))
+        if stage == "prepare" and draft.get("status") not in {"draft", "final-approved"}:
+            errors.append(problem("DRAFT_NOT_READY", "Prepare requires an approved draft status.", "draft.md"))
         if stage == "publish" and draft.get("status") != "final-approved":
             errors.append(problem("DRAFT_NOT_FINAL", "Set draft status to final-approved after review.", "draft.md"))
 
@@ -380,7 +463,7 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
                 "content-index.json",
             )
         )
-    mix = validate_index(index, brief, draft, errors) if index and brief and draft else {"trend": 0, "evergreen": 0}
+    mix = validate_index(index, brief, draft, stage, errors) if index and brief and draft else {"trend": 0, "evergreen": 0}
     if mix["trend"] + mix["evergreen"] == 8 and mix != {"trend": 6, "evergreen": 2}:
         warnings.append(
             problem(
@@ -416,7 +499,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("post_dir", type=Path, help="Directory containing brief.md and draft.md")
     parser.add_argument("--index", required=True, type=Path, help="Shared content-index.json")
-    parser.add_argument("--stage", choices=("prepare", "publish"), default="prepare")
+    parser.add_argument("--stage", choices=("proposal", "prepare", "publish"), default="prepare")
     parser.add_argument("--json", action="store_true", help="Compatibility flag; JSON is the default")
     parser.add_argument("--pretty", action="store_true")
     return parser

@@ -310,6 +310,39 @@ class DraftValidationTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["summary"]["format"], "3분 AI 정리")
 
+    def test_proposal_may_leave_hub_url_blank_but_draft_may_not(self) -> None:
+        body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
+            f"## 소제목 {index}\n\n" + ("한글설명" * 75)
+            for index in range(1, 4)
+        ) + "\n\n{{image:evidence}}\n\n공식 발표를 직접 확인해보세요."
+        text = (
+            "---\n"
+            'post_id: "2026-10-18-proposal"\n'
+            'title: "직장인을 위한 AI 발표 쉽게 읽기"\n'
+            'format: "3분 AI 정리"\n'
+            'category: "AI 냠냠"\n'
+            'tags: ["AI냠냠", "AI발표"]\n'
+            'cover_image: "cover.png"\n'
+            'evidence_image: "evidence.png"\n'
+            'images: ["cover.png", "evidence.png"]\n'
+            'ai_media: "false"\n'
+            'sources: ["official|https://openai.com"]\n'
+            'content_index_path: "../../content-index.json"\n'
+            'hub_url: ""\n'
+            'previous_url: ""\n'
+            'pair_url: ""\n'
+            'cta: "공식 발표를 직접 확인해보세요."\n'
+            'status: "proposal"\n'
+            "---\n\n"
+            f"{body}\n"
+        )
+
+        proposal = validate_draft.validate_text(text)
+        draft = validate_draft.validate_text(text.replace('status: "proposal"', 'status: "draft"'))
+
+        self.assertTrue(proposal["ok"], proposal)
+        self.assertIn("FIELD_INVALID", codes(draft))
+
     def test_series_hub_uses_shorter_limits_and_one_cover(self) -> None:
         body = "도입입니다. " + ("쉬운 설명을 모아둡니다 " * 22) + "마칩니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
             f"## 목차 {index}\n\n" + ("새 글을 연결합니다 " * 8) + "마칩니다."
@@ -361,6 +394,17 @@ class DraftValidationTests(unittest.TestCase):
         )
 
         self.assertIn("PARAGRAPH_SENTENCE_LIMIT", codes(result))
+
+    def test_urls_and_decimal_points_do_not_count_as_sentences(self) -> None:
+        body = (
+            "응답자는 15.8시간을 썼습니다. 36.6%는 자료 찾기였습니다.\n\n"
+            "확인한 자료: [공식 안내](https://example.com/a.b)"
+        )
+        result = validate_draft.validate_text(
+            make_draft(body), min_chars=1, max_chars=500, min_headings=0
+        )
+
+        self.assertNotIn("PARAGRAPH_SENTENCE_LIMIT", codes(result))
 
 
 if __name__ == "__main__":

@@ -1,35 +1,32 @@
 # AI 냠냠 editorial workflow
 
-Read for topic selection, outline approval, and pilot operation.
-
 ## Weekly invocation
 
 When the owner says `이번 주 AI 냠냠 시작`, research and return five compact candidates. Do not draft yet.
 
-For each candidate show only:
+For each show only: reader question; `trend` or `evergreen`; why now; office-worker meaning; evidence/date; follow-up check; existing-post overlap.
 
-- reader question and `trend` or `evergreen`;
-- why now;
-- meaning for a nondeveloper office worker;
-- evidence level and primary source date;
-- follow-up verification method;
-- overlap with existing posts.
+Use the five-point discussion scorecard in `pilot/START-HERE.md` when the pilot workspace is present. It prioritizes topics; it never predicts traffic.
 
-Search current announcements from the previous 14 days and the evergreen question backlog. Use recent official announcements, papers, or public-agency material as core evidence. Media and newsletters may provide context or discovery. Social posts and rumors cannot stand alone.
+Search the previous 14 days and the evergreen backlog. Core evidence must be an official announcement, paper, or public-agency source. Media may add context; rumors cannot stand alone.
 
-Aim for six `trend` and two `evergreen` posts across the eight-post pilot (the operating target is 70/30, not a promise that every five-candidate set has an exact ratio). Check `content-index.json` before proposing topics.
+Across eight posts aim for six `trend` and two `evergreen`; this is the nearest whole-post mix to 70/30. Check `content-index.json` first.
 
-For medical, legal, financial, or political topics, require both an official and a reliable independent source. Offer explanation only, never personalized advice.
+Medical, legal, financial, or political topics need official and reliable independent sources. Explain only; never give personal advice.
 
 ## Gates and artifacts
 
-1. Owner chooses a candidate: mark `topic_status: approved` in `brief.md`.
+1. Owner chooses a candidate; mark `topic_status: approved`.
 2. Propose three titles and an outline. Draft only after `outline_status: approved`.
-3. For `직접 써봤습니다`, capture four owner notes in conversation: intended job, convenience, friction, and reuse decision. Do not turn them into a questionnaire.
+3. For `직접 써봤습니다`, capture the owner's goal, convenience, friction, and reuse decision in conversation.
 4. Create `draft.md` once, then patch sections only.
-5. After editor review, mark `final_status: approved` only on explicit approval.
-6. The exact current-task command `발행` is the final runtime authorization; never infer it from a file status.
+5. Mark `final_status: approved` only on explicit approval.
+6. Only the exact current-task command `발행` authorizes publication.
 
-Keep only `brief.md`, `draft.md`, and the shared `content-index.json`. Do not store source-page dumps or Naver DOM. Use `assets/brief-template.md`, `assets/draft-template.md`, and `assets/content-index-template.json`.
+Keep only `brief.md`, `draft.md`, and shared `content-index.json`; never store source dumps or Naver DOM.
 
-If the same edit request recurs three times, propose one rule; add it only after the owner approves. Do not update the public skill or README until eight pilot posts meet the agreed completion criteria.
+Before drafting, fill `primary_query`, `reader_reward`, `owner_angle`, `next_link_plan`, and `selected_title` in `brief.md`. Require one concrete scene, one limit, and one reusable action.
+
+Requested samples stay `proposal` with pending approvals and blank `hub_url`; validate with `--stage proposal`. After approval, rename `제안 목차` to `승인된 목차`, add the hub URL, and change to `draft`. Proposals must fail `--stage prepare`.
+
+After an edit repeats three times, propose one rule and add it only if approved. Keep the public skill unchanged until the eight-post pilot passes.

@@ -22,8 +22,55 @@
   "assets": {
     "mascot_path": "_shared/media/somsom-master.png",
     "mascot_sha256": "2B4C480EAB345C28F15E14A8261A124C6AC7C8E9B3C02A48A7BBB3000128E0E8",
-    "cover_template": "_shared/cover-template.html"
+    "cover_template": "_shared/cover-template.html",
+    "evidence_template": "_shared/evidence-template.html"
   },
-  "posts": [],
-  "updated_at": "2026-10-18T00:00:00+09:00"
+  "posts": [
+    {
+      "post_id": "2026-10-18-chatgpt-slides",
+      "title": "보고서만 넣으면 발표자료가 나올까? ChatGPT Slides 핵심 정리",
+      "format": "3분 AI 정리",
+      "topic_type": "trend",
+      "status": "proposal",
+      "draft_path": "posts/2026-10-18-chatgpt-slides/draft.md",
+      "cover_path": "posts/2026-10-18-chatgpt-slides/media/cover.png",
+      "evidence_path": "posts/2026-10-18-chatgpt-slides/media/evidence.png",
+      "previous_post_id": "",
+      "pair_post_id": "2026-10-18-ai-context-bottleneck",
+      "next_post_id": "2026-10-18-ai-context-bottleneck",
+      "links_updated": false,
+      "url": ""
+    },
+    {
+      "post_id": "2026-10-18-ai-context-bottleneck",
+      "title": "AI를 쓰는데 왜 더 바쁠까? 자료 찾기 병목을 확인해봤습니다",
+      "format": "자료를 확인해봤습니다",
+      "topic_type": "trend",
+      "status": "proposal",
+      "draft_path": "posts/2026-10-18-ai-context-bottleneck/draft.md",
+      "cover_path": "posts/2026-10-18-ai-context-bottleneck/media/cover.png",
+      "evidence_path": "posts/2026-10-18-ai-context-bottleneck/media/evidence.png",
+      "previous_post_id": "2026-10-18-chatgpt-slides",
+      "pair_post_id": "2026-10-18-chatgpt-slides",
+      "next_post_id": "2026-10-18-company-files-ai",
+      "links_updated": false,
+      "url": ""
+    },
+    {
+      "post_id": "2026-10-18-company-files-ai",
+      "title": "회사 파일, AI에 바로 올려도 될까? 먼저 확인할 5가지",
+      "format": "3분 AI 정리",
+      "topic_type": "evergreen",
+      "status": "proposal",
+      "draft_path": "posts/2026-10-18-company-files-ai/draft.md",
+      "cover_path": "posts/2026-10-18-company-files-ai/media/cover.png",
+      "evidence_path": "posts/2026-10-18-company-files-ai/media/evidence.png",
+      "previous_post_id": "2026-10-18-ai-context-bottleneck",
+      "pair_post_id": "",
+      "next_post_id": "",
+      "links_updated": false,
+      "url": ""
+    }
+  ],
+  "updated_at": "2026-10-18T12:00:00+09:00"
 }

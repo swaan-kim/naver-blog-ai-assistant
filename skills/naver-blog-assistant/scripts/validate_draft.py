@@ -28,6 +28,7 @@ FORMAT_LIMITS = {
     "직접 써봤습니다": (1_500, 2_100, 4, 5),
     "자료를 확인해봤습니다": (1_500, 2_100, 4, 5),
 }
+PILOT_STATUSES = {"proposal", "draft", "final-approved"}
 HUB_FORMAT = "AI 냠냠 목차"
 HUB_LIMITS = (500, 1_400, 3, 5)
 MAX_REPORTED_PROBLEMS = 12
@@ -256,6 +257,14 @@ def _is_table_divider(line: str) -> bool:
     return bool(cells) and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
 
 
+def _sentence_count(line: str) -> int:
+    """Count sentence endings without treating URLs or decimal points as sentences."""
+    value = re.sub(r"\]\((?:https?://)[^)]+\)", "]", line)
+    value = re.sub(r"https?://\S+", "", value)
+    value = re.sub(r"(?<=\d)\.(?=\d)", "", value)
+    return len(re.findall(r"[.!?](?:[\"'’”)]*)(?=\s|$)", value))
+
+
 def _visible_body(body_lines: list[str]) -> str:
     visible: list[str] = []
     in_fence = False
@@ -351,7 +360,7 @@ def _layout_metrics_and_problems(
     for index, kind in enumerate(kinds):
         if kind != "prose":
             continue
-        sentence_endings = len(re.findall(r"[.!?](?:[\"'’”)]*)", body_lines[index]))
+        sentence_endings = _sentence_count(body_lines[index])
         if sentence_endings > 3:
             problems.append(
                 Problem(
@@ -486,7 +495,6 @@ def validate_text(
             "cover_image",
             "evidence_image",
             "content_index_path",
-            "hub_url",
             "cta",
             "status",
         ):
@@ -494,10 +502,27 @@ def validate_text(
             if not isinstance(value, str) or not value.strip():
                 errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
 
-        for field in ("previous_url", "pair_url"):
+        status = metadata.get("status", "")
+        if status not in PILOT_STATUSES:
+            errors.append(
+                Problem(
+                    "STATUS_INVALID",
+                    "status must be proposal, draft, or final-approved.",
+                )
+            )
+
+        for field in ("hub_url", "previous_url", "pair_url"):
             value = metadata.get(field, "")
             if not isinstance(value, str):
                 errors.append(Problem("FIELD_INVALID", f"{field} must be a string."))
+        hub_url = metadata.get("hub_url", "")
+        if status != "proposal" and isinstance(hub_url, str) and not hub_url.strip():
+            errors.append(
+                Problem(
+                    "FIELD_INVALID",
+                    "hub_url must be non-empty after a proposal is approved.",
+                )
+            )
 
         ai_media = metadata.get("ai_media", "")
         if ai_media not in {"true", "false"}:

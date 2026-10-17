@@ -6,6 +6,10 @@
 
 > 이 브랜치는 8편 파일럿용입니다. 검증이 끝나기 전에는 공개 `main` 설치판을 바꾸지 않습니다.
 
+## 지금 바로 시작하기
+
+[파일럿 시작 안내](pilot/START-HERE.md)에 목차 글 1편과 검증 가능한 제안 원고 3편이 준비돼 있습니다. `1번으로 진행. 제목과 목차 승인.`처럼 고르면 다음 단계로 넘어갑니다. 제안은 승인 전 네이버 준비가 차단되며, 조회수나 검색 순위를 보장하는 수치로 표현하지 않습니다.
+
 ## 한눈에 보기
 
 ```text
@@ -105,6 +109,13 @@ python skills/naver-blog-assistant/scripts/validate_draft.py content/posts/YYYY-
 ```powershell
 python skills/naver-blog-assistant/scripts/validate_package.py content/posts/YYYY-MM-DD-slug `
   --index content/content-index.json --stage prepare --json
+```
+
+승인 전 비교용 예시는 `--stage proposal`로 검사합니다. 목차 글은 별도 승인 검증을 사용합니다.
+
+```powershell
+python skills/naver-blog-assistant/scripts/validate_hub.py pilot/hub `
+  --index pilot/content-index.json --stage prepare --json
 ```
 
 발행 직전에는 `--stage publish`로 다시 검사합니다. `[[확인 필요]]`, 제목 중복, 분량·소제목 오류, 이미지 누락, API 키로 보이는 문자열이 있으면 차단합니다. 출력은 원고 대신 제목·글자 수·문단 수·오류 코드만 반환합니다.

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 냠냠 설명 도식</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: #f4f0e7; }
+    body { display: grid; place-items: center; font-family: "Nanum Gothic", "Malgun Gothic", sans-serif; }
+    main { width: 1200px; height: 675px; padding: 64px 72px; color: #172038; background: linear-gradient(135deg, #fbf9f4, #ece7dc); }
+    .eyebrow { color: #657468; font-size: 23px; font-weight: 800; letter-spacing: .06em; }
+    h1 { margin: 16px 0 40px; font-size: 44px; line-height: 1.25; letter-spacing: -.035em; word-break: keep-all; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; align-items: stretch; }
+    .step { position: relative; min-height: 190px; padding: 28px 22px; border: 2px solid #d6d0c3; border-radius: 24px; background: rgba(255,255,255,.86); }
+    .step:not(:last-child)::after { content: "→"; position: absolute; right: -21px; top: 76px; z-index: 2; color: #75837a; font-size: 31px; font-weight: 900; }
+    .number { color: #7a877f; font-size: 20px; font-weight: 900; }
+    .label { margin-top: 18px; font-size: 27px; line-height: 1.35; font-weight: 900; word-break: keep-all; }
+    .note { margin-top: 34px; padding: 16px 22px; border-radius: 16px; background: #172038; color: white; font-size: 24px; line-height: 1.4; text-align: center; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">AI 냠냠 · 한눈에 보기</div>
+    <h1 id="title">업무 흐름을 다섯 단계로 확인합니다</h1>
+    <section class="flow" id="flow"></section>
+    <div class="note" id="note">AI 결과보다 앞뒤의 사람 판단을 함께 봅니다.</div>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    document.querySelector('#title').textContent = params.get('title') || document.querySelector('#title').textContent;
+    document.querySelector('#note').textContent = params.get('note') || document.querySelector('#note').textContent;
+    const labels = [1, 2, 3, 4, 5].map((number) => params.get(`s${number}`) || `단계 ${number}`);
+    document.querySelector('#flow').innerHTML = labels.map((label, index) => `<article class="step"><div class="number">0${index + 1}</div><div class="label">${label}</div></article>`).join('');
+  </script>
+</body>
+</html>

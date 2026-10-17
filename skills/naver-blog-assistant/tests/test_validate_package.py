@@ -23,6 +23,11 @@ topic_type: "trend"
 format: "{article_format}"
 risk_level: "standard"
 reader_question: "이 발표가 내 일에 어떤 의미인가요?"
+primary_query: "AI 발표 직장인 의미"
+reader_reward: "지금 써볼지 기다릴지 결정합니다."
+owner_angle: "공식 발표를 비개발자 업무 장면으로 풉니다."
+next_link_plan: "목차에서 관련 사용 후기로 연결합니다."
+selected_title: "직장인을 위한 AI 발표 쉽게 읽기"
 why_now: "새 공식 발표가 나왔습니다."
 work_relevance: "직장인의 도구 선택에 영향을 줍니다."
 evidence_level: "공식 발표 확인"
@@ -44,7 +49,7 @@ independent_sources: []
 
 ## 제목 후보
 
-1. 제목 하나
+1. 직장인을 위한 AI 발표 쉽게 읽기
 2. 제목 둘
 3. 제목 셋
 
@@ -127,6 +132,8 @@ class PackageValidationTests(unittest.TestCase):
         post_dir.mkdir()
         (post_dir / "brief.md").write_text(brief, encoding="utf-8")
         (post_dir / "draft.md").write_text(draft, encoding="utf-8")
+        (post_dir / "cover.png").write_bytes(b"cover")
+        (post_dir / "evidence.png").write_bytes(b"evidence")
         index_path = root / "content-index.json"
         index_path.write_text(json.dumps(index, ensure_ascii=False), encoding="utf-8")
         return post_dir, index_path
@@ -140,6 +147,57 @@ class PackageValidationTests(unittest.TestCase):
 
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["summary"]["unresolved_markers"], 0)
+
+    def test_proposal_passes_without_owner_approval_or_published_hub(self) -> None:
+        brief = (
+            brief_text()
+            .replace('topic_status: "approved"', 'topic_status: "pending"')
+            .replace('outline_status: "approved"', 'outline_status: "pending"')
+            .replace("## 승인된 목차", "## 제안 목차")
+        )
+        draft = (
+            draft_text()
+            .replace('hub_url: "https://blog.naver.com/hub"', 'hub_url: ""')
+            .replace('status: "draft"', 'status: "proposal"')
+            .replace("목차: https://blog.naver.com/hub\n\n", "")
+        )
+        index = index_data()
+        index["hub"] = {"title": "AI 냠냠 글 모아보기", "status": "draft", "url": ""}
+        index["posts"][0]["status"] = "proposal"
+        with tempfile.TemporaryDirectory() as temp:
+            post_dir, index_path = self.write_package(
+                Path(temp), brief=brief, draft=draft, index=index
+            )
+            result = validate_package.validate_package(post_dir, index_path, "proposal")
+
+        self.assertTrue(result["ok"], result)
+
+    def test_proposal_cannot_skip_prepare_approval_gate(self) -> None:
+        brief = (
+            brief_text()
+            .replace('topic_status: "approved"', 'topic_status: "pending"')
+            .replace('outline_status: "approved"', 'outline_status: "pending"')
+            .replace("## 승인된 목차", "## 제안 목차")
+        )
+        draft = (
+            draft_text()
+            .replace('hub_url: "https://blog.naver.com/hub"', 'hub_url: ""')
+            .replace('status: "draft"', 'status: "proposal"')
+            .replace("목차: https://blog.naver.com/hub\n\n", "")
+        )
+        index = index_data()
+        index["hub"] = {"title": "AI 냠냠 글 모아보기", "status": "draft", "url": ""}
+        index["posts"][0]["status"] = "proposal"
+        with tempfile.TemporaryDirectory() as temp:
+            post_dir, index_path = self.write_package(
+                Path(temp), brief=brief, draft=draft, index=index
+            )
+            result = validate_package.validate_package(post_dir, index_path, "prepare")
+
+        result_codes = {item["code"] for item in result["errors"]}
+        self.assertIn("TOPIC_NOT_APPROVED", result_codes)
+        self.assertIn("HUB_NOT_PUBLISHED", result_codes)
+        self.assertIn("DRAFT_NOT_READY", result_codes)
 
     def test_publish_requires_final_approval_and_final_draft_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -197,6 +255,44 @@ class PackageValidationTests(unittest.TestCase):
         self.assertIn(
             "OUTLINE_ORDER_MISMATCH", {item["code"] for item in result["errors"]}
         )
+
+    def test_title_source_and_media_consistency_are_enforced(self) -> None:
+        cases = {
+            "title": (
+                brief_text().replace(
+                    'selected_title: "직장인을 위한 AI 발표 쉽게 읽기"',
+                    'selected_title: "다른 제목"',
+                ),
+                draft_text(),
+                None,
+                "SELECTED_TITLE_MISMATCH",
+            ),
+            "sources": (
+                brief_text(),
+                draft_text().replace(
+                    'sources: ["official|https://openai.com/index/introducing-chatgpt-search"]',
+                    'sources: ["official|https://openai.com/index/introducing-chatgpt-search", "official|https://openai.com/security"]',
+                ),
+                None,
+                "SOURCE_LIST_MISMATCH",
+            ),
+            "media": (
+                brief_text(),
+                draft_text(),
+                "evidence.png",
+                "MEDIA_FILE_MISSING",
+            ),
+        }
+        for name, (brief, draft, missing, expected) in cases.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                post_dir, index_path = self.write_package(
+                    Path(temp), brief=brief, draft=draft, index=index_data()
+                )
+                if missing:
+                    (post_dir / missing).unlink()
+                result = validate_package.validate_package(post_dir, index_path, "prepare")
+
+            self.assertIn(expected, {item["code"] for item in result["errors"]})
 
     def test_risk_level_is_an_enum_and_template_sources_are_rejected(self) -> None:
         brief = brief_text().replace(

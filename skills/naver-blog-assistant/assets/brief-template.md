@@ -4,6 +4,11 @@ topic_type: "trend"
 format: "3분 AI 정리"
 risk_level: "standard"
 reader_question: ""
+primary_query: ""
+reader_reward: ""
+owner_angle: ""
+next_link_plan: ""
+selected_title: ""
 why_now: ""
 work_relevance: ""
 evidence_level: ""
@@ -30,10 +35,10 @@ independent_sources: []
 2. 같은 질문을 다른 각도로 쓴 제목
 3. 검색어를 자연스럽게 포함한 제목
 
-## 승인된 목차
+## 제안 목차
 
-- 목차 승인 전에는 `outline_status`를 `pending`으로 둡니다.
-- 승인 후 실제 소제목을 순서대로 적습니다.
+- 제안 단계에서는 실제 소제목을 순서대로 적습니다.
+- 주인장이 제목과 목차를 승인하면 이 제목을 `승인된 목차`로 바꾸고 `outline_status`를 `approved`로 바꿉니다.
 - 원고의 소제목 순서는 이 목록을 따릅니다.
 
 ## 사실·경험·해석

@@ -16,14 +16,14 @@ Work internally as 솜솜, but write public copy in the owner's first-person voi
 
 Resolve paths here. Do not invent a replacement when the original dog mascot is missing.
 
-Core resources: `assets/draft-template.md`, `assets/article-request.yaml`, `assets/persona-template.md`, `scripts/validate_draft.py`, and `scripts/validate_package.py`.
+Core resources: `assets/draft-template.md`, `assets/article-request.yaml`, `assets/persona-template.md`, `scripts/validate_draft.py`, `scripts/validate_hub.py`, and `scripts/validate_package.py`.
 
 ## File-first flow
 
 1. Do not draft before the owner approves a topic and outline.
 2. Create `brief.md` and `draft.md`; update the shared `content-index.json`.
 3. Generate the draft once. Apply later feedback only to named sections.
-4. Run `python scripts/validate_package.py <post-folder> --index <content-index.json> --stage prepare --json`.
+4. Sample-only packages use `--stage proposal`; approved work runs `python scripts/validate_package.py <post-folder> --index <content-index.json> --stage prepare --json`.
 5. Prepare a new Naver editor and stop for owner review.
 6. Publish only when the owner sends exactly `발행` for the current post; validate again with `--stage publish` first.
 

@@ -7,6 +7,7 @@ Read only for editor preparation or publication.
 - The owner signs in. Never inspect credentials, codes, cookies, or session storage.
 - Always open a new post; never change the nine legacy posts or an unrelated draft.
 - Prepare from the local `draft.md` path. Do not relay its body through the model.
+- Read `../assets/review-checklist.md` before preparing and complete its human-only quality checks; scripts handle structural checks.
 - Require `AI_NAMNYAM_PILOT_ROOT`; draft, shared index, and all media must resolve inside it without symlink escapes.
 - If an expected locator is missing, stop with `SELECTOR_MISS`; never guess coordinates.
 - Keep sessions and diagnostics out of Git. Return no DOM or screenshot on success.
