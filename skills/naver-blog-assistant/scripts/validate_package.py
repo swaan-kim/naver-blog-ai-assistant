@@ -9,6 +9,7 @@ import sys
 from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import validate_draft
 
@@ -16,6 +17,7 @@ import validate_draft
 FORMATS = {"3분 AI 정리", "직접 써봤습니다", "자료를 확인해봤습니다"}
 TOPIC_TYPES = {"trend", "evergreen"}
 USAGE_LEVELS = {"처음 써봄", "몇 번 써봄", "계속 쓰는 중"}
+RISK_LEVELS = {"standard", "high-stakes"}
 BRIEF_FIELDS = (
     "post_id",
     "topic_type",
@@ -87,6 +89,23 @@ def section_bullets(lines: list[str], heading: str) -> list[str]:
     return items
 
 
+def draft_headings(lines: list[str]) -> list[str]:
+    return [line[3:].strip() for line in lines if line.startswith("## ") and line[3:].strip()]
+
+
+def source_is_placeholder(value: str) -> bool:
+    candidate = value.split("|", 1)[-1].strip()
+    parsed = urlparse(candidate)
+    host = (parsed.hostname or "").lower()
+    return (
+        parsed.scheme not in {"http", "https"}
+        or not host
+        or host in {"example.com", "example.org", "example.net", "localhost"}
+        or "YOUR_" in candidate.upper()
+        or "TODO" in candidate.upper()
+    )
+
+
 def validate_brief(
     metadata: dict[str, Any], body: list[str], stage: str, errors: list[dict[str, str]]
 ) -> None:
@@ -105,24 +124,58 @@ def validate_brief(
         errors.append(problem("FORMAT_INVALID", "Use one of the three AI 냠냠 formats.", "brief.md"))
     if metadata.get("topic_type") not in TOPIC_TYPES:
         errors.append(problem("TOPIC_TYPE_INVALID", "topic_type must be trend or evergreen.", "brief.md"))
+    if metadata.get("risk_level") not in RISK_LEVELS:
+        errors.append(
+            problem(
+                "RISK_LEVEL_INVALID",
+                "risk_level must be standard or high-stakes.",
+                "brief.md",
+            )
+        )
 
     for field in ("primary_sources", "independent_sources"):
         value = metadata.get(field, [])
         if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
             errors.append(problem("BRIEF_FIELD_INVALID", f"{field} must be a string list.", "brief.md"))
+        elif any(source_is_placeholder(item) for item in value):
+            errors.append(
+                problem(
+                    "SOURCE_PLACEHOLDER",
+                    f"Replace template or invalid URLs in {field}.",
+                    "brief.md",
+                )
+            )
 
     primary = metadata.get("primary_sources", [])
     independent = metadata.get("independent_sources", [])
     if isinstance(primary, list) and not primary:
         errors.append(problem("PRIMARY_SOURCE_MISSING", "At least one primary source is required.", "brief.md"))
-    if metadata.get("risk_level") == "high-stakes" and isinstance(independent, list) and not independent:
-        errors.append(
-            problem(
-                "INDEPENDENT_SOURCE_MISSING",
-                "High-stakes topics require a reliable independent source.",
-                "brief.md",
-            )
+    if metadata.get("risk_level") == "high-stakes":
+        primary_prefixes = ("official|", "paper|", "public-agency|")
+        has_official = isinstance(primary, list) and any(
+            isinstance(item, str) and item.startswith(primary_prefixes)
+            for item in primary
         )
+        has_independent = isinstance(independent, list) and any(
+            isinstance(item, str) and item.startswith("independent|")
+            for item in independent
+        )
+        if not has_official:
+            errors.append(
+                problem(
+                    "OFFICIAL_SOURCE_MISSING",
+                    "High-stakes topics require an official, paper, or public-agency source.",
+                    "brief.md",
+                )
+            )
+        if not has_independent:
+            errors.append(
+                problem(
+                    "INDEPENDENT_SOURCE_MISSING",
+                    "High-stakes topics require a reliable independent source.",
+                    "brief.md",
+                )
+            )
 
     if metadata.get("topic_type") == "trend":
         try:
@@ -197,7 +250,11 @@ def load_index(path: Path, errors: list[dict[str, str]]) -> dict[str, Any]:
 def validate_index(
     index: dict[str, Any], brief: dict[str, Any], draft: dict[str, Any], errors: list[dict[str, str]]
 ) -> dict[str, int]:
-    if index.get("schema_version") != 1 or index.get("category") != "AI 냠냠":
+    if (
+        index.get("schema_version") != 1
+        or index.get("category") != "AI 냠냠"
+        or index.get("managed_by") != "ai-namnyam-pilot"
+    ):
         errors.append(problem("INDEX_SCHEMA_INVALID", "Use schema version 1 and category AI 냠냠.", "content-index.json"))
 
     hub = index.get("hub")
@@ -255,11 +312,42 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
     draft_path = post_dir / "draft.md"
     brief_text = read_text(brief_path, errors)
     draft_text = read_text(draft_path, errors)
+    for filename, payload in (("brief.md", brief_text), ("draft.md", draft_text)):
+        if payload is not None and validate_draft.SECRET_RE.search(payload):
+            errors.append(
+                problem(
+                    "POSSIBLE_SECRET",
+                    "Remove possible API keys or access credentials.",
+                    filename,
+                )
+            )
     brief, brief_body = parse_frontmatter(brief_text, "brief.md", errors)
-    draft, _ = parse_frontmatter(draft_text, "draft.md", errors)
+    draft, draft_body = parse_frontmatter(draft_text, "draft.md", errors)
+    draft_sources = draft.get("sources", []) if draft else []
+    if isinstance(draft_sources, list) and any(
+        isinstance(item, str) and source_is_placeholder(item)
+        for item in draft_sources
+    ):
+        errors.append(
+            problem(
+                "SOURCE_PLACEHOLDER",
+                "Replace template or invalid URLs in draft sources.",
+                "draft.md",
+            )
+        )
 
     if brief:
         validate_brief(brief, brief_body, stage, errors)
+        approved_outline = section_bullets(brief_body, "승인된 목차")
+        actual_headings = draft_headings(draft_body)
+        if approved_outline and actual_headings != approved_outline:
+            errors.append(
+                problem(
+                    "OUTLINE_ORDER_MISMATCH",
+                    "The draft headings must exactly match the approved outline and order.",
+                    "draft.md",
+                )
+            )
     draft_result: dict[str, Any] = {}
     if draft_text is not None:
         draft_result = validate_draft.validate_text(draft_text)
@@ -280,6 +368,18 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
             errors.append(problem("DRAFT_NOT_FINAL", "Set draft status to final-approved after review.", "draft.md"))
 
     index = load_index(index_path, errors)
+    try:
+        index_text = index_path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError):
+        index_text = ""
+    if index_text and validate_draft.SECRET_RE.search(index_text):
+        errors.append(
+            problem(
+                "POSSIBLE_SECRET",
+                "Remove possible API keys or access credentials.",
+                "content-index.json",
+            )
+        )
     mix = validate_index(index, brief, draft, errors) if index and brief and draft else {"trend": 0, "evergreen": 0}
     if mix["trend"] + mix["evergreen"] == 8 and mix != {"trend": 6, "evergreen": 2}:
         warnings.append(

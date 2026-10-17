@@ -64,6 +64,18 @@ class DraftValidationTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertIn("FIELD_MISSING", codes(result))
 
+    def test_image_markers_are_not_counted_as_visible_copy(self) -> None:
+        result = validate_draft.validate_text(
+            make_draft("{{image:cover}}\n\n한글"),
+            min_chars=1,
+            max_chars=20,
+            min_headings=0,
+            max_headings=0,
+        )
+
+        self.assertEqual(result["summary"]["body_chars"], 2)
+        self.assertEqual(result["summary"]["paragraphs"], 1)
+
     def test_malformed_frontmatter_returns_one_compact_error(self) -> None:
         result = validate_draft.validate_text("---\ntitle: [broken\n---\n비밀 본문")
 
@@ -263,9 +275,13 @@ class DraftValidationTests(unittest.TestCase):
         self.assertNotIn("PARAGRAPH_SPACING", codes(result))
 
     def test_pilot_format_uses_its_own_length_and_heading_limits(self) -> None:
-        body = "도입입니다.\n\n" + "\n\n".join(
+        body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
             f"## 소제목 {index}\n\n" + ("한글설명" * 75)
             for index in range(1, 4)
+        ) + (
+            "\n\n{{image:evidence}}\n\n"
+            "목차: https://blog.naver.com/hub\n\n"
+            "공식 발표를 직접 확인해보세요."
         )
         text = (
             "---\n"
@@ -279,6 +295,7 @@ class DraftValidationTests(unittest.TestCase):
             'images: ["cover.png", "evidence.png"]\n'
             'ai_media: "false"\n'
             'sources: ["official|https://example.com"]\n'
+            'content_index_path: "../../content-index.json"\n'
             'hub_url: "https://blog.naver.com/hub"\n'
             'previous_url: ""\n'
             'pair_url: ""\n'
@@ -294,21 +311,26 @@ class DraftValidationTests(unittest.TestCase):
         self.assertEqual(result["summary"]["format"], "3분 AI 정리")
 
     def test_series_hub_uses_shorter_limits_and_one_cover(self) -> None:
-        body = "도입입니다. " + ("쉬운 설명을 모아둡니다 " * 22) + "마칩니다.\n\n" + "\n\n".join(
+        body = "도입입니다. " + ("쉬운 설명을 모아둡니다 " * 22) + "마칩니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
             f"## 목차 {index}\n\n" + ("새 글을 연결합니다 " * 8) + "마칩니다."
             for index in range(1, 4)
         )
         text = (
             "---\n"
+            'post_id: "series-hub"\n'
             'title: "AI가 궁금할 때 다시 찾는 곳"\n'
             'format: "AI 냠냠 목차"\n'
             'category: "AI 냠냠"\n'
             'tags: ["AI냠냠"]\n'
+            'cover_image: "cover.png"\n'
             'images: ["cover.png"]\n'
             'ai_media: "true"\n'
+            'content_index_path: "../content-index.json"\n'
+            'cta: "질문을 남겨주세요."\n'
+            'status: "draft"\n'
             'sources: []\n'
             "---\n\n"
-            f"{body}\n"
+            f"{body}\n\n질문을 남겨주세요.\n"
         )
 
         result = validate_draft.validate_text(text)

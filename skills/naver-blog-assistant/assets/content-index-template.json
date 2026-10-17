@@ -2,6 +2,7 @@
   "schema_version": 1,
   "series": "AI 냠냠",
   "category": "AI 냠냠",
+  "managed_by": "ai-namnyam-pilot",
   "hub": {
     "title": "AI 냠냠 글 모아보기",
     "status": "draft",

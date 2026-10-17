@@ -14,6 +14,7 @@ images:
 ai_media: "false"
 sources:
   - "official|https://example.com"
+content_index_path: "../../content-index.json"
 hub_url: ""
 previous_url: ""
 pair_url: ""
@@ -23,9 +24,13 @@ status: "draft"
 
 독자가 실제로 궁금해할 장면과 이 글에서 얻을 답을 1~3문장으로 적습니다.
 
+{{image:cover}}
+
 ## 무슨 일이 있었나요?
 
 확인한 사실을 짧게 적습니다. 출처가 말하지 않은 내용은 사실처럼 쓰지 않습니다.
+
+{{image:evidence}}
 
 ## 왜 나와 관련 있나요?
 

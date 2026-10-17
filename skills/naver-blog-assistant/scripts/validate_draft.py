@@ -40,6 +40,7 @@ PILOT_REQUIRED_FIELDS = (
     "evidence_image",
     "ai_media",
     "sources",
+    "content_index_path",
     "hub_url",
     "previous_url",
     "pair_url",
@@ -50,7 +51,17 @@ HANGUL_RE = re.compile(r"[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]")
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
 LIST_RE = re.compile(r"^\s*(?:[-+*]|\d+[.)])\s+\S")
 UNRESOLVED_RE = re.compile(r"\[\[\s*확인\s*필요\s*\]\]")
-SECRET_RE = re.compile(r"(?:sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16})")
+SECRET_RE = re.compile(
+    r"(?:"
+    r"sk-(?:proj-|ant-[A-Za-z0-9_-]*-)?[A-Za-z0-9_-]{20,}"
+    r"|AKIA[A-Z0-9]{16}"
+    r"|AIza[0-9A-Za-z_-]{35}"
+    r"|github_pat_[A-Za-z0-9_]{20,}"
+    r"|gh[opusr]_[A-Za-z0-9]{20,}"
+    r"|xox[baprs]-[A-Za-z0-9-]{10,}"
+    r")"
+)
+IMAGE_MARKER_RE = re.compile(r"^\{\{image:[a-z-]+\}\}$")
 
 
 @dataclass(frozen=True)
@@ -220,6 +231,8 @@ def _normalize(value: str) -> str:
 
 
 def _visible_line(line: str) -> str:
+    if IMAGE_MARKER_RE.fullmatch(line.strip()):
+        return ""
     value = line
     previous = None
     while value != previous:
@@ -266,6 +279,8 @@ def _line_kind(line: str, in_fence: bool) -> str:
         return "code"
     if not stripped:
         return "blank"
+    if IMAGE_MARKER_RE.fullmatch(stripped):
+        return "structure"
     if HEADING_RE.match(line):
         return "heading"
     if LIST_RE.match(line):
@@ -421,7 +436,15 @@ def validate_text(
                 )
 
     if hub_mode:
-        for field in ("format", "ai_media"):
+        for field in (
+            "post_id",
+            "format",
+            "cover_image",
+            "ai_media",
+            "content_index_path",
+            "cta",
+            "status",
+        ):
             if field not in metadata:
                 errors.append(Problem("FIELD_MISSING", f"Hub frontmatter field is missing: {field}"))
 
@@ -458,7 +481,15 @@ def validate_text(
         if category != "AI 냠냠":
             errors.append(Problem("CATEGORY_INVALID", "Pilot posts must use category 'AI 냠냠'."))
 
-        for field in ("post_id", "cover_image", "evidence_image", "hub_url", "cta", "status"):
+        for field in (
+            "post_id",
+            "cover_image",
+            "evidence_image",
+            "content_index_path",
+            "hub_url",
+            "cta",
+            "status",
+        ):
             value = metadata.get(field, "")
             if not isinstance(value, str) or not value.strip():
                 errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
@@ -482,13 +513,50 @@ def validate_text(
                     )
                 )
 
+        for role in ("cover", "evidence"):
+            marker = f"{{{{image:{role}}}}}"
+            if text.count(marker) != 1:
+                errors.append(
+                    Problem(
+                        "IMAGE_MARKER_INVALID",
+                        f"The body must contain {marker} exactly once.",
+                    )
+                )
+
+        cta = metadata.get("cta", "")
+        if isinstance(cta, str) and cta.strip() and cta.strip() not in text:
+            errors.append(Problem("CTA_MISSING_BODY", "The CTA metadata must appear in the body."))
+        for field in ("hub_url", "previous_url", "pair_url"):
+            url = metadata.get(field, "")
+            if isinstance(url, str) and url.strip() and url.strip() not in text:
+                errors.append(
+                    Problem(
+                        "LINK_MISSING_BODY",
+                        f"The {field} URL must appear in the body when configured.",
+                    )
+                )
+
     if hub_mode:
         if category != "AI 냠냠":
             errors.append(Problem("CATEGORY_INVALID", "The hub must use category 'AI 냠냠'."))
         if metadata.get("ai_media") not in {"true", "false"}:
             errors.append(Problem("AI_MEDIA_INVALID", "ai_media must be 'true' or 'false'."))
-        if isinstance(images, list) and len(images) != 1:
+        for field in ("post_id", "cover_image", "content_index_path", "cta", "status"):
+            value = metadata.get(field, "")
+            if not isinstance(value, str) or not value.strip():
+                errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
+        if isinstance(images, list) and images != [metadata.get("cover_image", "")]:
             errors.append(Problem("IMAGES_INVALID", "The hub must contain exactly one cover image."))
+        if text.count("{{image:cover}}") != 1:
+            errors.append(
+                Problem(
+                    "IMAGE_MARKER_INVALID",
+                    "The hub body must contain {{image:cover}} exactly once.",
+                )
+            )
+        cta = metadata.get("cta", "")
+        if isinstance(cta, str) and cta.strip() and cta.strip() not in text:
+            errors.append(Problem("CTA_MISSING_BODY", "The CTA metadata must appear in the body."))
 
     if pilot_mode and isinstance(sources, list):
         if not sources:

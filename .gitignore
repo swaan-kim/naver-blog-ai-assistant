@@ -10,9 +10,12 @@ __pycache__/
 .env.*
 !.env.example
 auth/
+auth.json
 sessions/
+*session*.json
 storage-state*.json
 *cookies*.json
+playwright-state/
 
 # Local drafts and browser diagnostics
 drafts/

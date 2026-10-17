@@ -1,4 +1,5 @@
 ---
+post_id: "series-hub"
 title: "AI가 궁금할 때 다시 찾는 곳: AI 냠냠 목차"
 format: "AI 냠냠 목차"
 content_type: "series_hub"
@@ -11,7 +12,8 @@ ai_media: "true"
 hub_url: ""
 previous_url: ""
 pair_url: ""
-content_index: "../content-index.json"
+content_index_path: "../content-index.json"
+cta: "이해하기 어려운 AI 질문이 있다면 댓글로 남겨주세요."
 outline_approved: "false"
 final_approved: "false"
 sources: []
@@ -20,6 +22,8 @@ sources: []
 AI 소식은 매일 쏟아지는데, 설명은 왜 이렇게 어렵고 길까요. 저도 새 기능을 찾다가 용어부터 검색하느라 정작 써보기도 전에 지친 적이 많았습니다.
 
 그래서 이곳에는 개발 지식이 없어도 이해할 수 있는 AI 이야기만 모읍니다. **AI 이야기는 쉽게 정리하고, 추천은 직접 써본 뒤에만 하겠습니다.**
+
+{{image:cover}}
 
 ## 3분 AI 정리
 

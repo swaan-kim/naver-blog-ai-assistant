@@ -2,6 +2,7 @@
   "schema_version": 1,
   "series": "AI 냠냠",
   "category": "AI 냠냠",
+  "managed_by": "ai-namnyam-pilot",
   "brand_promise": "AI 이야기는 쉽게 정리하고, 추천은 직접 써본 뒤에만 합니다.",
   "hub": {
     "id": "series-hub",

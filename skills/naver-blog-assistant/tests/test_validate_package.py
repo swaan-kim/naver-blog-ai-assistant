@@ -38,7 +38,7 @@ reuse_note: "{note}"
 topic_status: "approved"
 outline_status: "approved"
 final_status: "{final_status}"
-primary_sources: ["official|https://example.com"]
+primary_sources: ["official|https://openai.com/index/introducing-chatgpt-search"]
 independent_sources: []
 ---
 
@@ -62,9 +62,13 @@ def draft_text(*, final: bool = False, usage: bool = False) -> str:
     article_format = "직접 써봤습니다" if usage else "3분 AI 정리"
     heading_count = 4 if usage else 3
     repeat = 110 if usage else 75
-    body = "도입입니다.\n\n" + "\n\n".join(
+    body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
         f"## 승인 소제목 {index}\n\n" + ("한글설명" * repeat)
         for index in range(heading_count)
+    ) + (
+        "\n\n{{image:evidence}}\n\n"
+        "목차: https://blog.naver.com/hub\n\n"
+        "공식 발표를 직접 확인해보세요."
     )
     status = "final-approved" if final else "draft"
     return f'''---
@@ -77,7 +81,8 @@ cover_image: "cover.png"
 evidence_image: "evidence.png"
 images: ["cover.png", "evidence.png"]
 ai_media: "false"
-sources: ["official|https://example.com"]
+sources: ["official|https://openai.com/index/introducing-chatgpt-search"]
+content_index_path: "../content-index.json"
 hub_url: "https://blog.naver.com/hub"
 previous_url: ""
 pair_url: ""
@@ -94,6 +99,7 @@ def index_data(*, title: str = "직장인을 위한 AI 발표 쉽게 읽기") ->
         "schema_version": 1,
         "series": "AI 냠냠",
         "category": "AI 냠냠",
+        "managed_by": "ai-namnyam-pilot",
         "hub": {
             "title": "AI 냠냠 글 모아보기",
             "status": "published",
@@ -177,6 +183,61 @@ class PackageValidationTests(unittest.TestCase):
             result = validate_package.validate_package(post_dir, index_path, "prepare")
 
         self.assertIn("UNRESOLVED_MARKER", {item["code"] for item in result["errors"]})
+
+    def test_draft_headings_must_match_approved_outline_order(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            post_dir, index_path = self.write_package(
+                Path(temp),
+                brief=brief_text(),
+                draft=draft_text().replace("## 승인 소제목 1", "## 다른 소제목", 1),
+                index=index_data(),
+            )
+            result = validate_package.validate_package(post_dir, index_path, "prepare")
+
+        self.assertIn(
+            "OUTLINE_ORDER_MISMATCH", {item["code"] for item in result["errors"]}
+        )
+
+    def test_risk_level_is_an_enum_and_template_sources_are_rejected(self) -> None:
+        brief = brief_text().replace(
+            'risk_level: "standard"', 'risk_level: "high"'
+        ).replace(
+            "https://openai.com/index/introducing-chatgpt-search",
+            "https://example.com",
+        )
+        draft = draft_text().replace(
+            "https://openai.com/index/introducing-chatgpt-search",
+            "https://example.com",
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            post_dir, index_path = self.write_package(
+                Path(temp), brief=brief, draft=draft, index=index_data()
+            )
+            result = validate_package.validate_package(post_dir, index_path, "prepare")
+
+        result_codes = {item["code"] for item in result["errors"]}
+        self.assertIn("RISK_LEVEL_INVALID", result_codes)
+        self.assertIn("SOURCE_PLACEHOLDER", result_codes)
+
+    def test_secrets_are_scanned_in_all_three_package_files(self) -> None:
+        secret = "github_pat_" + "A" * 30
+        for target in ("brief", "draft", "index"):
+            with self.subTest(target=target), tempfile.TemporaryDirectory() as temp:
+                brief = brief_text() + (secret if target == "brief" else "")
+                draft = draft_text() + (secret if target == "draft" else "")
+                index = index_data()
+                if target == "index":
+                    index["credential"] = secret
+                post_dir, index_path = self.write_package(
+                    Path(temp), brief=brief, draft=draft, index=index
+                )
+                result = validate_package.validate_package(
+                    post_dir, index_path, "prepare"
+                )
+
+            self.assertIn(
+                "POSSIBLE_SECRET", {item["code"] for item in result["errors"]}
+            )
 
 
 if __name__ == "__main__":
