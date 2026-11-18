@@ -3,11 +3,17 @@ post_id: "YYYY-MM-DD-slug"
 topic_type: "trend"
 format: "3분 AI 정리"
 risk_level: "standard"
+reader_role: "기획·마케팅·운영·CX 비개발 실무자"
+reader_problem: ""
 reader_question: ""
 primary_query: ""
 reader_reward: ""
+content_role: "entry"
+cluster_id: "repetitive-work"
+one_line_answer: ""
 owner_angle: ""
 next_link_plan: ""
+unique_proof: ""
 selected_title: ""
 why_now: ""
 work_relevance: ""
@@ -16,6 +22,8 @@ follow_up_check: ""
 duplicate_check: ""
 selected_on: "YYYY-MM-DD"
 source_date: "YYYY-MM-DD"
+facts_checked_at: "YYYY-MM-DD"
+publish_by: "YYYY-MM-DD"
 usage_level: "해당 없음"
 goal_note: "해당 없음"
 convenience_note: "해당 없음"
@@ -27,6 +35,8 @@ final_status: "pending"
 primary_sources:
   - "official|https://example.com"
 independent_sources: []
+claim_source_map:
+  - "핵심 주장|https://example.com|YYYY-MM-DD|확인하지 못한 한계"
 ---
 
 ## 제목 후보
@@ -47,6 +57,11 @@ independent_sources: []
 - 주인장이 직접 겪은 사실:
 - 주인장의 해석:
 - 아직 모르는 점:
+
+## 고유 증거
+
+- 직접 캡처·전후 비교·실패와 수정·작은 실험·업무 흐름·원본 도식 중 하나를 적습니다.
+- 증거를 만들 수 없다면 사용 후기가 아니라 자료 확인형으로 바꿉니다.
 
 ## 편집 메모
 

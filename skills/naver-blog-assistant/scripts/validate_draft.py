@@ -15,6 +15,7 @@ import re
 import sys
 import unicodedata
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,18 @@ PILOT_REQUIRED_FIELDS = (
     "pair_url",
     "cta",
     "status",
+)
+PILOT_V2_FIELDS = (
+    "reading_minutes",
+    "one_line_answer",
+    "internal_toc",
+    "evidence_source",
+    "evidence_captured_at",
+    "evidence_use_basis",
+    "evidence_ai_edited",
+    "recommended_next_id",
+    "recommended_next_label",
+    "facts_checked_at",
 )
 HANGUL_RE = re.compile(r"[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]")
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
@@ -437,8 +450,14 @@ def validate_text(
 
     pilot_mode = article_format in FORMAT_LIMITS
     hub_mode = article_format == HUB_FORMAT
+    v2_mode = pilot_mode and any(field in metadata for field in PILOT_V2_FIELDS)
     if pilot_mode:
-        for field in PILOT_REQUIRED_FIELDS:
+        required_fields = (
+            tuple(field for field in PILOT_REQUIRED_FIELDS if field not in {"previous_url", "pair_url"})
+            if v2_mode
+            else PILOT_REQUIRED_FIELDS
+        )
+        for field in required_fields:
             if field not in metadata:
                 errors.append(
                     Problem("FIELD_MISSING", f"Pilot frontmatter field is missing: {field}")
@@ -484,7 +503,7 @@ def validate_text(
                 duplicate_tags.append(normalized)
             seen_tags.add(normalized)
     if duplicate_tags:
-        errors.append(Problem("TAG_DUPLICATE", "Remove duplicate tags."))
+        warnings.append(Problem("TAG_DUPLICATE", "Remove duplicate tags."))
 
     if pilot_mode:
         if category != "AI 냠냠":
@@ -527,6 +546,66 @@ def validate_text(
         ai_media = metadata.get("ai_media", "")
         if ai_media not in {"true", "false"}:
             errors.append(Problem("AI_MEDIA_INVALID", "ai_media must be 'true' or 'false'."))
+
+        # V2 fields are required as a group. Older packages remain readable, while a
+        # partially migrated draft is rejected instead of silently losing evidence
+        # and relationship metadata.
+        if v2_mode:
+            for field in PILOT_V2_FIELDS:
+                if field not in metadata:
+                    errors.append(
+                        Problem("FIELD_MISSING", f"V2 frontmatter field is missing: {field}")
+                    )
+
+            reading_minutes = metadata.get("reading_minutes", "")
+            if (
+                not isinstance(reading_minutes, str)
+                or not reading_minutes.isdigit()
+                or not 1 <= int(reading_minutes) <= 60
+            ):
+                errors.append(
+                    Problem(
+                        "READING_MINUTES_INVALID",
+                        "reading_minutes must be an integer from 1 to 60.",
+                    )
+                )
+
+            internal_toc = metadata.get("internal_toc", [])
+            if not isinstance(internal_toc, list) or any(
+                not isinstance(item, str) or not item.strip() for item in internal_toc
+            ):
+                errors.append(
+                    Problem(
+                        "INTERNAL_TOC_INVALID",
+                        "internal_toc must be a list of non-empty headings.",
+                    )
+                )
+
+            for field in (
+                "one_line_answer",
+                "evidence_source",
+                "evidence_captured_at",
+                "evidence_use_basis",
+                "recommended_next_label",
+                "facts_checked_at",
+            ):
+                value = metadata.get(field, "")
+                if not isinstance(value, str) or not value.strip():
+                    errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
+            next_id = metadata.get("recommended_next_id", "")
+            if not isinstance(next_id, str):
+                errors.append(Problem("FIELD_INVALID", "recommended_next_id must be a string."))
+            if metadata.get("evidence_ai_edited") not in {"true", "false"}:
+                errors.append(
+                    Problem("AI_MEDIA_INVALID", "evidence_ai_edited must be 'true' or 'false'.")
+                )
+            for field in ("evidence_captured_at", "facts_checked_at"):
+                value = metadata.get(field, "")
+                if isinstance(value, str) and value.strip():
+                    try:
+                        date.fromisoformat(value)
+                    except ValueError:
+                        errors.append(Problem("DATE_INVALID", f"{field} must use YYYY-MM-DD."))
 
         if isinstance(images, list):
             expected_images = [metadata.get("cover_image", ""), metadata.get("evidence_image", "")]
@@ -604,11 +683,11 @@ def validate_text(
     elif hangul_chars == 0:
         errors.append(Problem("BODY_NO_HANGUL", "The body must contain Korean text."))
     if body_chars < min_chars:
-        errors.append(
+        warnings.append(
             Problem("BODY_TOO_SHORT", f"Body has {body_chars} characters; minimum is {min_chars}.")
         )
     elif body_chars > max_chars:
-        errors.append(
+        warnings.append(
             Problem("BODY_TOO_LONG", f"Body has {body_chars} characters; maximum is {max_chars}.")
         )
 
@@ -628,7 +707,7 @@ def validate_text(
 
     table_count = sum(1 for line in body_lines if _is_table_divider(line))
     if table_count > 1:
-        errors.append(Problem("TABLE_LIMIT", "Use at most one Markdown table."))
+        warnings.append(Problem("TABLE_LIMIT", "Use at most one Markdown table."))
 
     title_in_body_count = 0
     if isinstance(title, str) and title.strip():
@@ -651,16 +730,21 @@ def validate_text(
     heading_count, paragraph_count, layout_problems = _layout_metrics_and_problems(
         body_lines, body_start_line
     )
-    errors.extend(layout_problems)
+    errors.extend(
+        item for item in layout_problems if item.code == "MARKDOWN_FENCE_UNCLOSED"
+    )
+    warnings.extend(
+        item for item in layout_problems if item.code != "MARKDOWN_FENCE_UNCLOSED"
+    )
     if heading_count < min_headings:
-        errors.append(
+        warnings.append(
             Problem(
                 "HEADINGS_TOO_FEW",
                 f"Body has {heading_count} headings; minimum is {min_headings}.",
             )
         )
     elif heading_count > max_headings:
-        errors.append(
+        warnings.append(
             Problem(
                 "HEADINGS_TOO_MANY",
                 f"Body has {heading_count} headings; maximum is {max_headings}.",
@@ -668,6 +752,25 @@ def validate_text(
         )
     if heading_count == 0:
         warnings.append(Problem("HEADING_MISSING", "The body has no Markdown headings."))
+
+    if pilot_mode and isinstance(tags, list) and len(tags) > 5:
+        warnings.append(
+            Problem("TAG_COUNT_HIGH", "Use no more than five focused tags when possible.")
+        )
+
+    if pilot_mode and isinstance(metadata.get("internal_toc"), list):
+        actual_headings = [
+            re.sub(r"^\s{0,3}#{1,6}\s+", "", line).strip()
+            for line in body_lines
+            if HEADING_RE.match(line)
+        ]
+        if metadata["internal_toc"] != actual_headings:
+            errors.append(
+                Problem(
+                    "INTERNAL_TOC_MISMATCH",
+                    "internal_toc must exactly match the body headings and order.",
+                )
+            )
 
     return _make_result(
         {

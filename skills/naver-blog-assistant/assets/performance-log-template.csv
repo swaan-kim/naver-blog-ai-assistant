@@ -1,0 +1,3 @@
+post_id,title,format,content_role,cluster_id,published_at,review_point,reviewed_at,views,search_inflow_share,inflow_terms,comments,likes,writing_minutes,review_minutes,notes
+YYYY-MM-DD-slug,글 제목,3분 AI 정리,entry,repetitive-work,YYYY-MM-DD,D+7,YYYY-MM-DD,,,,,,,,
+YYYY-MM-DD-slug,글 제목,3분 AI 정리,entry,repetitive-work,YYYY-MM-DD,D+28,YYYY-MM-DD,,,,,,,,

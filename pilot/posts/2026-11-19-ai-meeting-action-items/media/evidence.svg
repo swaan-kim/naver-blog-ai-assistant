@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <rect width="1200" height="1500" fill="#F5F2EA"/>
+  <text x="80" y="95" font-family="Malgun Gothic, sans-serif" font-size="30" font-weight="700" fill="#657468">AI 냠냠 · 완전한 가상 회의</text>
+  <text x="80" y="185" font-family="Malgun Gothic, sans-serif" font-size="60" font-weight="800" fill="#172038">요약을 실행표로 바꿀 때</text>
+  <text x="80" y="262" font-family="Malgun Gothic, sans-serif" font-size="60" font-weight="800" fill="#172038">없는 약속은 만들지 않습니다</text>
+
+  <rect x="70" y="330" width="1060" height="300" rx="32" fill="#FFF" stroke="#A9B4AF" stroke-width="4"/>
+  <text x="110" y="390" font-family="Malgun Gothic, sans-serif" font-size="31" font-weight="800" fill="#4A5A54">가상 회의 메모</text>
+  <text x="110" y="455" font-family="Malgun Gothic, sans-serif" font-size="35" fill="#172038">• 신청 폼의 필수 입력칸이 헷갈립니다.</text>
+  <text x="110" y="515" font-family="Malgun Gothic, sans-serif" font-size="35" fill="#172038">• 안내 문구를 줄이고 오류 메시지를 먼저 고칩니다.</text>
+  <text x="110" y="575" font-family="Malgun Gothic, sans-serif" font-size="35" fill="#172038">• 새 화면은 금요일 공개가 목표입니다.</text>
+
+  <circle cx="600" cy="700" r="46" fill="#1C6C70"/>
+  <path d="M575 690 L600 715 L625 690" fill="none" stroke="#FFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="70" y="770" width="510" height="210" rx="30" fill="#E4F1F0"/>
+  <text x="110" y="830" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#1C6C70">결정</text>
+  <text x="110" y="895" font-family="Malgun Gothic, sans-serif" font-size="36" font-weight="800" fill="#172038">안내 문구·오류</text>
+  <text x="110" y="945" font-family="Malgun Gothic, sans-serif" font-size="36" font-weight="800" fill="#172038">메시지를 먼저 수정</text>
+
+  <rect x="620" y="770" width="510" height="210" rx="30" fill="#EAF0F8"/>
+  <text x="660" y="830" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#345D8B">할 일</text>
+  <text x="660" y="895" font-family="Malgun Gothic, sans-serif" font-size="34" font-weight="800" fill="#172038">안내 문구 줄이기</text>
+  <text x="660" y="945" font-family="Malgun Gothic, sans-serif" font-size="34" font-weight="800" fill="#172038">오류 메시지 수정</text>
+
+  <rect x="70" y="1020" width="510" height="210" rx="30" fill="#FFF0DB"/>
+  <text x="110" y="1080" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#8A602B">담당</text>
+  <text x="110" y="1175" font-family="Malgun Gothic, sans-serif" font-size="58" font-weight="900" fill="#9A4F34">[미정]</text>
+
+  <rect x="620" y="1020" width="510" height="210" rx="30" fill="#FFF0DB"/>
+  <text x="660" y="1080" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#8A602B">기한</text>
+  <text x="660" y="1175" font-family="Malgun Gothic, sans-serif" font-size="58" font-weight="900" fill="#9A4F34">[미정]</text>
+
+  <rect x="70" y="1280" width="1060" height="125" rx="26" fill="#172038"/>
+  <text x="600" y="1335" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="33" font-weight="800" fill="#FFF">‘금요일 공개 목표’가 개별 할 일의 기한인지는</text>
+  <text x="600" y="1380" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="33" font-weight="800" fill="#FFF">사람에게 확인합니다.</text>
+  <text x="600" y="1445" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="30" fill="#68736B">직접 제작 · 특정 AI 도구의 실제 출력 아님</text>
+  <text x="600" y="1482" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="28" fill="#68736B">기준일 2026-11-19</text>
+</svg>

@@ -2,6 +2,10 @@
 post_id: "YYYY-MM-DD-topic"
 format: "3분 AI 정리" # or 직접 써봤습니다 / 자료를 확인해봤습니다
 topic_type: "trend" # or evergreen
+content_role: "entry" # or proof
+cluster_id: "repetitive-work" # or self-service / safe-ai / result-quality
+reader_role: "기획·마케팅·운영·CX 비개발 실무자"
+reader_problem: "독자가 실제 업무에서 막힌 장면"
 reader_question: "직장인이 실제로 묻는 한 문장"
 primary_query: "독자가 검색하거나 말할 표현"
 reader_reward: "읽은 뒤 이해·결정·실행할 한 가지"
@@ -11,6 +15,9 @@ why_now: "지금 다룰 이유"
 work_relevance: "일이나 생활에 미치는 의미"
 primary_sources:
   - "official|https://example.com"
+unique_proof: "직접 캡처·전후 비교·실패와 수정·작은 실험·업무 흐름·원본 도식 중 하나"
+facts_checked_at: "YYYY-MM-DD"
+publish_by: "YYYY-MM-DD"
 owner_notes: # required only for 직접 써봤습니다
   usage_level: "처음 써봄"
   goal: "무엇을 하려고 썼는지"

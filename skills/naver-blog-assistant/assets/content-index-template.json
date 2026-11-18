@@ -1,17 +1,28 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "series": "AI 냠냠",
   "category": "AI 냠냠",
   "managed_by": "ai-namnyam-pilot",
   "hub": {
-    "title": "AI 냠냠 글 모아보기",
+    "title": "AI를 일에 써보고 싶은 사람의 시작 지도",
     "status": "draft",
     "url": ""
   },
   "pilot": {
     "target_posts": 8,
-    "trend_target": 6,
-    "evergreen_target": 2
+    "target_pairs": 4,
+    "primary_audience_target": 6,
+    "design_pm_target": 2
   },
+  "legacy": {
+    "count": 9,
+    "legacy_excluded": true
+  },
+  "clusters": [
+    {"cluster_id": "repetitive-work", "label": "반복 업무를 줄이는 AI"},
+    {"cluster_id": "self-service", "label": "개발자를 기다리지 않고 직접 해보기"},
+    {"cluster_id": "safe-ai", "label": "회사에서 안전하게 AI 쓰기"},
+    {"cluster_id": "result-quality", "label": "AI 결과를 덜 어색하게 다듬기"}
+  ],
   "posts": []
 }

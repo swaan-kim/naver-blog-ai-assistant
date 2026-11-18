@@ -36,6 +36,10 @@ def codes(result: dict) -> set[str]:
     return {item["code"] for item in result["errors"]}
 
 
+def warning_codes(result: dict) -> set[str]:
+    return {item["code"] for item in result["warnings"]}
+
+
 class DraftValidationTests(unittest.TestCase):
     def test_valid_draft_returns_compact_summary(self) -> None:
         body = (
@@ -98,19 +102,19 @@ class DraftValidationTests(unittest.TestCase):
         long = validate_draft.validate_text(make_draft("가" * 21), min_chars=10, max_chars=20)
         no_hangul = validate_draft.validate_text(make_draft("English only text"), min_chars=1, max_chars=50)
 
-        self.assertIn("BODY_TOO_SHORT", codes(short))
-        self.assertIn("BODY_TOO_LONG", codes(long))
+        self.assertIn("BODY_TOO_SHORT", warning_codes(short))
+        self.assertIn("BODY_TOO_LONG", warning_codes(long))
         self.assertIn("BODY_NO_HANGUL", codes(no_hangul))
 
     def test_heading_and_paragraph_spacing_are_validated(self) -> None:
         body = "첫 문단\n## 붙은 소제목\n둘째 문단\n셋째 문단"
         result = validate_draft.validate_text(make_draft(body), min_chars=1, max_chars=500)
 
-        self.assertIn("HEADING_SPACE_BEFORE", codes(result))
-        self.assertIn("HEADING_SPACE_AFTER", codes(result))
-        self.assertIn("PARAGRAPH_SPACING", codes(result))
+        self.assertIn("HEADING_SPACE_BEFORE", warning_codes(result))
+        self.assertIn("HEADING_SPACE_AFTER", warning_codes(result))
+        self.assertIn("PARAGRAPH_SPACING", warning_codes(result))
         spacing_lines = [
-            item["line"] for item in result["errors"] if item["code"] == "PARAGRAPH_SPACING"
+            item["line"] for item in result["warnings"] if item["code"] == "PARAGRAPH_SPACING"
         ]
         self.assertTrue(all(isinstance(line, int) for line in spacing_lines))
 
@@ -119,7 +123,7 @@ class DraftValidationTests(unittest.TestCase):
             make_draft("한글 본문", tags=("AI", "#ai")), min_chars=1, max_chars=100
         )
 
-        self.assertIn("TAG_DUPLICATE", codes(result))
+        self.assertIn("TAG_DUPLICATE", warning_codes(result))
 
     def test_cli_emits_one_line_json_without_body(self) -> None:
         unique_body = "한글 비밀 본문 XYZ-DO-NOT-ECHO"
@@ -157,8 +161,8 @@ class DraftValidationTests(unittest.TestCase):
         )
         rendered = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
 
-        self.assertGreater(result["summary"]["error_count"], len(result["errors"]))
-        self.assertLessEqual(len(result["errors"]), validate_draft.MAX_REPORTED_PROBLEMS)
+        self.assertGreater(result["summary"]["warning_count"], len(result["warnings"]))
+        self.assertLessEqual(len(result["warnings"]), validate_draft.MAX_REPORTED_PROBLEMS)
         self.assertTrue(result["summary"]["title_truncated"])
         self.assertLess(len(rendered), 5_000)
 
@@ -186,9 +190,9 @@ class DraftValidationTests(unittest.TestCase):
             max_headings=3,
         )
 
-        self.assertIn("HEADINGS_TOO_FEW", codes(default_result))
+        self.assertIn("HEADINGS_TOO_FEW", warning_codes(default_result))
         self.assertTrue(default_valid["ok"])
-        self.assertIn("HEADINGS_TOO_MANY", codes(default_too_many))
+        self.assertIn("HEADINGS_TOO_MANY", warning_codes(default_too_many))
         self.assertTrue(custom_result["ok"])
 
     def test_invalid_quotes_are_rejected(self) -> None:
@@ -272,7 +276,7 @@ class DraftValidationTests(unittest.TestCase):
             make_draft(body), min_chars=1, max_chars=500, min_headings=0, max_headings=6
         )
 
-        self.assertNotIn("PARAGRAPH_SPACING", codes(result))
+        self.assertNotIn("PARAGRAPH_SPACING", warning_codes(result))
 
     def test_pilot_format_uses_its_own_length_and_heading_limits(self) -> None:
         body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
@@ -343,6 +347,51 @@ class DraftValidationTests(unittest.TestCase):
         self.assertTrue(proposal["ok"], proposal)
         self.assertIn("FIELD_INVALID", codes(draft))
 
+    def test_v2_internal_toc_and_evidence_metadata_are_validated(self) -> None:
+        body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
+            f"## 소제목 {index}\n\n" + ("한글설명" * 75)
+            for index in range(1, 4)
+        ) + "\n\n{{image:evidence}}\n\n질문을 남겨주세요."
+        text = (
+            "---\n"
+            'post_id: "v2-test"\n'
+            'title: "업무 AI를 직접 확인하는 법"\n'
+            'format: "3분 AI 정리"\n'
+            'category: "AI 냠냠"\n'
+            'tags: ["AI냠냠"]\n'
+            'cover_image: "cover.png"\n'
+            'evidence_image: "evidence.png"\n'
+            'images: ["cover.png", "evidence.png"]\n'
+            'ai_media: "false"\n'
+            'sources: ["official|https://example.kr/source"]\n'
+            'content_index_path: "../content-index.json"\n'
+            'hub_url: "https://blog.naver.com/hub"\n'
+            'previous_url: ""\n'
+            'pair_url: ""\n'
+            'cta: "질문을 남겨주세요."\n'
+            'status: "draft"\n'
+            'reading_minutes: "3"\n'
+            'one_line_answer: "직접 확인한 근거를 남깁니다."\n'
+            'internal_toc: ["소제목 1", "소제목 2", "소제목 3"]\n'
+            'evidence_source: "owner-created"\n'
+            'evidence_captured_at: "2026-10-23"\n'
+            'evidence_use_basis: "owner-created"\n'
+            'evidence_ai_edited: "false"\n'
+            'recommended_next_id: ""\n'
+            'recommended_next_label: "다음 실전 글을 읽습니다."\n'
+            'facts_checked_at: "2026-10-23"\n'
+            "---\n\n"
+            f"{body}\n"
+        )
+
+        valid = validate_draft.validate_text(text)
+        mismatch = validate_draft.validate_text(
+            text.replace('internal_toc: ["소제목 1", "소제목 2", "소제목 3"]', 'internal_toc: ["다른 목차"]')
+        )
+
+        self.assertTrue(valid["ok"], valid)
+        self.assertIn("INTERNAL_TOC_MISMATCH", codes(mismatch))
+
     def test_series_hub_uses_shorter_limits_and_one_cover(self) -> None:
         body = "도입입니다. " + ("쉬운 설명을 모아둡니다 " * 22) + "마칩니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
             f"## 목차 {index}\n\n" + ("새 글을 연결합니다 " * 8) + "마칩니다."
@@ -383,7 +432,7 @@ class DraftValidationTests(unittest.TestCase):
 
         self.assertIn("UNRESOLVED_MARKER", codes(result))
         self.assertIn("POSSIBLE_SECRET", codes(result))
-        self.assertIn("TABLE_LIMIT", codes(result))
+        self.assertIn("TABLE_LIMIT", warning_codes(result))
 
     def test_more_than_three_sentences_in_one_paragraph_is_rejected(self) -> None:
         result = validate_draft.validate_text(
@@ -393,7 +442,7 @@ class DraftValidationTests(unittest.TestCase):
             min_headings=0,
         )
 
-        self.assertIn("PARAGRAPH_SENTENCE_LIMIT", codes(result))
+        self.assertIn("PARAGRAPH_SENTENCE_LIMIT", warning_codes(result))
 
     def test_urls_and_decimal_points_do_not_count_as_sentences(self) -> None:
         body = (
@@ -404,7 +453,7 @@ class DraftValidationTests(unittest.TestCase):
             make_draft(body), min_chars=1, max_chars=500, min_headings=0
         )
 
-        self.assertNotIn("PARAGRAPH_SENTENCE_LIMIT", codes(result))
+        self.assertNotIn("PARAGRAPH_SENTENCE_LIMIT", warning_codes(result))
 
 
 if __name__ == "__main__":

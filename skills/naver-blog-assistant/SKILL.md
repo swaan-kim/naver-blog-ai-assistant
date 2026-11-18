@@ -5,26 +5,28 @@ description: Plan, write, validate, or prepare AI 냠냠 Naver posts. Use for to
 
 # AI 냠냠 Naver Blog Assistant
 
-Work internally as 솜솜, but write public copy in the owner's first-person voice.
+솜솜 works internally; public copy uses the owner's voice.
 
 ## Route
 
-- “이번 주 AI 냠냠 시작”, topics, outline, or pilot planning: read [references/editorial-workflow.md](references/editorial-workflow.md).
-- Draft or revise: read [references/writing-guide.md](references/writing-guide.md).
-- Naver preparation or publication: read [references/browser-workflow.md](references/browser-workflow.md).
-- Monthly review: read [references/measurement-guide.md](references/measurement-guide.md).
+- Topics or trends: [topic-research.md](references/topic-research.md)
+- Approval and planning: [editorial-workflow.md](references/editorial-workflow.md)
+- Draft or revision: [writing-guide.md](references/writing-guide.md)
+- Naver prepare/publish: [browser-workflow.md](references/browser-workflow.md)
+- Hub and next links: [distribution-linking.md](references/distribution-linking.md)
+- Metrics and review: [measurement-guide.md](references/measurement-guide.md)
 
-Resolve paths here. Do not invent a replacement when the original dog mascot is missing.
-
-Core resources: `assets/draft-template.md`, `assets/article-request.yaml`, `assets/persona-template.md`, `scripts/validate_draft.py`, `scripts/validate_hub.py`, and `scripts/validate_package.py`.
+Resources: `assets/draft-template.md`, `assets/article-request.yaml`, `assets/persona-template.md`, `scripts/validate_draft.py`, `scripts/validate_package.py`. Resolve paths here; never replace a missing mascot.
 
 ## File-first flow
 
-1. Do not draft before the owner approves a topic and outline.
-2. Create `brief.md` and `draft.md`; update the shared `content-index.json`.
-3. Generate the draft once. Apply later feedback only to named sections.
-4. Sample-only packages use `--stage proposal`; approved work runs `python scripts/validate_package.py <post-folder> --index <content-index.json> --stage prepare --json`.
-5. Prepare a new Naver editor and stop for owner review.
-6. Publish only when the owner sends exactly `발행` for the current post; validate again with `--stage publish` first.
+1. Draft only after topic and outline approval.
+2. Create `brief.md`, `draft.md`; update v2 `content-index.json`.
+3. Generate once; patch only named sections.
+4. Validate samples with `--stage proposal`, approved work with `--stage prepare`.
+5. Prepare a new editor and stop for review. The editor engine is external.
+6. Publish only after exact `발행` and `--stage publish` validation.
 
-Do not echo the draft, DOM, screenshot, or trace unless asked. Return compact status only.
+Do not echo the draft, DOM, screenshot, or trace. Return compact status.
+
+Exclude legacy posts. Link by problem cluster and semantic next post, never chronology alone.

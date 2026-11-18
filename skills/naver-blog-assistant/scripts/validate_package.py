@@ -48,6 +48,28 @@ BRIEF_FIELDS = (
     "primary_sources",
     "independent_sources",
 )
+BRIEF_V2_FIELDS = (
+    "reader_role",
+    "reader_problem",
+    "content_role",
+    "cluster_id",
+    "one_line_answer",
+    "unique_proof",
+    "facts_checked_at",
+    "publish_by",
+    "claim_source_map",
+)
+CONTENT_ROLES = {"entry", "proof"}
+PUBLISHING_STATES = {
+    "proposal",
+    "draft",
+    "prepared",
+    "publishing",
+    "published",
+    "outcome_uncertain",
+    "partial_link_update",
+    "legacy_excluded",
+}
 MAX_PROBLEMS = 20
 
 
@@ -126,6 +148,69 @@ def source_is_placeholder(value: str) -> bool:
     )
 
 
+def iso_date(value: Any) -> date | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def validate_claim_source_map(
+    value: Any,
+    allowed_source_urls: set[str],
+    errors: list[dict[str, str]],
+) -> None:
+    if not isinstance(value, list) or not value:
+        errors.append(
+            problem(
+                "CLAIM_SOURCE_MAP_INVALID",
+                "claim_source_map must contain claim|source-url|checked-date|limitation entries.",
+                "brief.md",
+            )
+        )
+        return
+
+    for entry in value:
+        if not isinstance(entry, str):
+            errors.append(
+                problem(
+                    "CLAIM_SOURCE_MAP_INVALID",
+                    "Every claim_source_map entry must be a string.",
+                    "brief.md",
+                )
+            )
+            continue
+        parts = [part.strip() for part in entry.split("|", 3)]
+        if len(parts) != 4 or any(not part for part in parts[:3]):
+            errors.append(
+                problem(
+                    "CLAIM_SOURCE_MAP_INVALID",
+                    "Use claim|source-url|checked-date|limitation for every mapped claim.",
+                    "brief.md",
+                )
+            )
+            continue
+        _, source_url, checked_at, _ = parts
+        if source_url not in allowed_source_urls:
+            errors.append(
+                problem(
+                    "CLAIM_SOURCE_UNKNOWN",
+                    "Every mapped claim must use a URL from the brief source lists.",
+                    "brief.md",
+                )
+            )
+        if iso_date(checked_at) is None:
+            errors.append(
+                problem(
+                    "CLAIM_CHECK_DATE_INVALID",
+                    "Mapped claim check dates must use YYYY-MM-DD.",
+                    "brief.md",
+                )
+            )
+
+
 def validate_brief(
     metadata: dict[str, Any], body: list[str], stage: str, errors: list[dict[str, str]]
 ) -> None:
@@ -138,6 +223,29 @@ def validate_brief(
             continue
         if field in metadata and not nonempty_string(metadata, field):
             errors.append(problem("BRIEF_FIELD_INVALID", f"{field} must be non-empty.", "brief.md"))
+
+    v2_mode = any(field in metadata for field in BRIEF_V2_FIELDS)
+    if v2_mode:
+        for field in BRIEF_V2_FIELDS:
+            if field not in metadata:
+                errors.append(
+                    problem("BRIEF_FIELD_MISSING", f"Missing V2 brief field: {field}", "brief.md")
+                )
+        for field in BRIEF_V2_FIELDS:
+            if field == "claim_source_map":
+                continue
+            if field in metadata and not nonempty_string(metadata, field):
+                errors.append(
+                    problem("BRIEF_FIELD_INVALID", f"{field} must be non-empty.", "brief.md")
+                )
+        if metadata.get("content_role") not in CONTENT_ROLES:
+            errors.append(
+                problem(
+                    "CONTENT_ROLE_INVALID",
+                    "content_role must be entry or proof.",
+                    "brief.md",
+                )
+            )
 
     article_format = metadata.get("format")
     if article_format not in FORMATS:
@@ -170,6 +278,42 @@ def validate_brief(
     independent = metadata.get("independent_sources", [])
     if isinstance(primary, list) and not primary:
         errors.append(problem("PRIMARY_SOURCE_MISSING", "At least one primary source is required.", "brief.md"))
+    if v2_mode:
+        allowed_source_urls = {
+            item.split("|", 1)[1].strip()
+            for source_list in (primary, independent)
+            if isinstance(source_list, list)
+            for item in source_list
+            if isinstance(item, str) and "|" in item
+        }
+        validate_claim_source_map(metadata.get("claim_source_map"), allowed_source_urls, errors)
+
+        facts_checked = iso_date(metadata.get("facts_checked_at"))
+        publish_by = iso_date(metadata.get("publish_by"))
+        if facts_checked is None or publish_by is None:
+            errors.append(
+                problem(
+                    "DATE_INVALID",
+                    "facts_checked_at and publish_by must use YYYY-MM-DD.",
+                    "brief.md",
+                )
+            )
+        elif publish_by < facts_checked:
+            errors.append(
+                problem(
+                    "PUBLISH_WINDOW_INVALID",
+                    "publish_by cannot be earlier than facts_checked_at.",
+                    "brief.md",
+                )
+            )
+        elif stage in {"prepare", "publish"} and date.today() > publish_by:
+            errors.append(
+                problem(
+                    "FACTS_STALE",
+                    "Recheck the facts and move publish_by before preparing or publishing.",
+                    "brief.md",
+                )
+            )
     if metadata.get("risk_level") == "high-stakes":
         primary_prefixes = ("official|", "paper|", "public-agency|")
         has_official = isinstance(primary, list) and any(
@@ -285,12 +429,19 @@ def validate_index(
     stage: str,
     errors: list[dict[str, str]],
 ) -> dict[str, int]:
+    schema_version = index.get("schema_version")
     if (
-        index.get("schema_version") != 1
+        schema_version not in {1, 2}
         or index.get("category") != "AI 냠냠"
         or index.get("managed_by") != "ai-namnyam-pilot"
     ):
-        errors.append(problem("INDEX_SCHEMA_INVALID", "Use schema version 1 and category AI 냠냠.", "content-index.json"))
+        errors.append(
+            problem(
+                "INDEX_SCHEMA_INVALID",
+                "Use schema version 1 or 2, category AI 냠냠, and the pilot manager id.",
+                "content-index.json",
+            )
+        )
 
     hub = index.get("hub")
     if (
@@ -302,7 +453,137 @@ def validate_index(
     posts = index.get("posts")
     if not isinstance(posts, list):
         errors.append(problem("INDEX_SCHEMA_INVALID", "posts must be a list.", "content-index.json"))
-        return {"trend": 0, "evergreen": 0}
+        return {"trend": 0, "evergreen": 0, "entry": 0, "proof": 0}
+
+    post_objects = [item for item in posts if isinstance(item, dict)]
+    for field in ("post_id", "title"):
+        values = [item.get(field) for item in post_objects if item.get(field)]
+        if len(values) != len(set(values)):
+            errors.append(
+                problem(
+                    "INDEX_DUPLICATE",
+                    f"Every non-empty {field} must be unique.",
+                    "content-index.json",
+                )
+            )
+    urls = [item.get("url") for item in post_objects if item.get("url")]
+    if len(urls) != len(set(urls)):
+        errors.append(
+            problem("INDEX_DUPLICATE", "Every published URL must be unique.", "content-index.json")
+        )
+
+    by_id = {
+        item.get("post_id"): item
+        for item in post_objects
+        if isinstance(item.get("post_id"), str) and item.get("post_id")
+    }
+
+    if schema_version == 2:
+        required_v2 = (
+            "cluster_id",
+            "content_role",
+            "recommended_next_id",
+            "published_at",
+            "facts_checked_at",
+            "freshness_due",
+            "source_hash",
+            "d7_review",
+            "d28_review",
+            "publishing_state",
+        )
+        for item in post_objects:
+            if any(field not in item for field in required_v2):
+                errors.append(
+                    problem(
+                        "INDEX_V2_FIELD_MISSING",
+                        "Every V2 post needs relationship, freshness, review, and publishing fields.",
+                        "content-index.json",
+                    )
+                )
+                continue
+            legacy = item.get("legacy_excluded") is True or item.get("publishing_state") == "legacy_excluded"
+            if legacy:
+                continue
+            if item.get("content_role") not in CONTENT_ROLES:
+                errors.append(
+                    problem(
+                        "CONTENT_ROLE_INVALID",
+                        "Every managed V2 post must use content_role entry or proof.",
+                        "content-index.json",
+                    )
+                )
+            if not isinstance(item.get("cluster_id"), str) or not item.get("cluster_id", "").strip():
+                errors.append(
+                    problem(
+                        "INDEX_V2_FIELD_INVALID",
+                        "Every managed V2 post needs a non-empty cluster_id.",
+                        "content-index.json",
+                    )
+                )
+            publishing_state = item.get("publishing_state")
+            if publishing_state not in PUBLISHING_STATES:
+                errors.append(
+                    problem(
+                        "PUBLISHING_STATE_INVALID",
+                        "Use a supported publishing_state.",
+                        "content-index.json",
+                    )
+                )
+            checked = iso_date(item.get("facts_checked_at"))
+            freshness = iso_date(item.get("freshness_due"))
+            if checked is None or freshness is None or freshness < checked:
+                errors.append(
+                    problem(
+                        "FRESHNESS_DATE_INVALID",
+                        "facts_checked_at and freshness_due must be ordered ISO dates.",
+                        "content-index.json",
+                    )
+                )
+            source_hash_required = (
+                item.get("publishing_state") == "published"
+                or (
+                    item.get("post_id") == brief.get("post_id")
+                    and stage in {"prepare", "publish"}
+                )
+            )
+            if source_hash_required and (
+                not isinstance(item.get("source_hash"), str)
+                or not item.get("source_hash", "").strip()
+            ):
+                errors.append(
+                    problem(
+                        "SOURCE_HASH_MISSING",
+                        "Every managed V2 post needs a source_hash.",
+                        "content-index.json",
+                    )
+                )
+            if publishing_state == "published":
+                if not item.get("url") or iso_date(item.get("published_at")) is None:
+                    errors.append(
+                        problem(
+                            "PUBLISHED_METADATA_MISSING",
+                            "Published posts need a URL and ISO published_at date.",
+                            "content-index.json",
+                        )
+                    )
+            next_id = item.get("recommended_next_id")
+            if not isinstance(next_id, str):
+                errors.append(
+                    problem(
+                        "NEXT_RELATION_INVALID",
+                        "recommended_next_id must be a string.",
+                        "content-index.json",
+                    )
+                )
+            elif next_id:
+                if next_id == item.get("post_id") or next_id not in by_id:
+                    errors.append(
+                        problem(
+                            "NEXT_RELATION_INVALID",
+                            "recommended_next_id must point to another indexed post.",
+                            "content-index.json",
+                        )
+                    )
 
     post_id = brief.get("post_id")
     matches = [item for item in posts if isinstance(item, dict) and item.get("post_id") == post_id]
@@ -315,31 +596,54 @@ def validate_index(
                 errors.append(problem("INDEX_POST_MISMATCH", f"Index {field} does not match brief.md.", "content-index.json"))
         if item.get("title") != draft.get("title"):
             errors.append(problem("INDEX_POST_MISMATCH", "Index title does not match draft.md.", "content-index.json"))
+        if schema_version == 2:
+            for field in ("cluster_id", "content_role"):
+                if item.get(field) != brief.get(field):
+                    errors.append(
+                        problem(
+                            "INDEX_POST_MISMATCH",
+                            f"Index {field} does not match brief.md.",
+                            "content-index.json",
+                        )
+                    )
+            if item.get("recommended_next_id", "") != draft.get("recommended_next_id", ""):
+                errors.append(
+                    problem(
+                        "NEXT_RELATION_MISMATCH",
+                        "Draft and index recommended_next_id values must match.",
+                        "content-index.json",
+                    )
+                )
 
-    previous_published = [
-        item
-        for item in posts
-        if isinstance(item, dict)
-        and item.get("post_id") != post_id
-        and item.get("status") == "published"
-        and item.get("url")
-    ]
-    expected_previous = previous_published[-1]["url"] if previous_published else ""
-    if draft.get("previous_url", "") != expected_previous:
-        errors.append(
-            problem(
-                "PREVIOUS_LINK_MISMATCH",
-                "draft previous_url must point to the latest published new-series post.",
-                "draft.md",
+    if schema_version == 1:
+        previous_published = [
+            item
+            for item in posts
+            if isinstance(item, dict)
+            and item.get("post_id") != post_id
+            and item.get("status") == "published"
+            and item.get("url")
+        ]
+        expected_previous = previous_published[-1]["url"] if previous_published else ""
+        if draft.get("previous_url", "") != expected_previous:
+            errors.append(
+                problem(
+                    "PREVIOUS_LINK_MISMATCH",
+                    "draft previous_url must point to the latest published new-series post.",
+                    "draft.md",
+                )
             )
-        )
     if isinstance(hub, dict) and draft.get("hub_url") != hub.get("url", ""):
         errors.append(problem("HUB_LINK_MISMATCH", "draft hub_url must match the index hub URL.", "draft.md"))
 
-    counts = {"trend": 0, "evergreen": 0}
+    counts = {"trend": 0, "evergreen": 0, "entry": 0, "proof": 0}
     for item in posts:
-        if isinstance(item, dict) and item.get("topic_type") in counts:
-            counts[item["topic_type"]] += 1
+        if not isinstance(item, dict) or item.get("legacy_excluded") is True:
+            continue
+        for field in ("topic_type", "content_role"):
+            value = item.get(field)
+            if value in counts:
+                counts[value] += 1
     return counts
 
 
@@ -433,6 +737,54 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
                     "draft.md",
                 )
             )
+        v2_mode = any(field in brief for field in BRIEF_V2_FIELDS)
+        if v2_mode:
+            for field in validate_draft.PILOT_V2_FIELDS:
+                if field not in draft:
+                    errors.append(
+                        problem(
+                            "DRAFT_V2_FIELD_MISSING",
+                            f"Missing V2 draft field: {field}",
+                            "draft.md",
+                        )
+                    )
+            for field in ("one_line_answer", "facts_checked_at"):
+                if brief.get(field) != draft.get(field):
+                    errors.append(
+                        problem(
+                            "BRIEF_DRAFT_MISMATCH",
+                            f"{field} differs between files.",
+                            "draft.md",
+                        )
+                    )
+
+            captured_at = iso_date(draft.get("evidence_captured_at"))
+            if captured_at is None:
+                errors.append(
+                    problem(
+                        "MEDIA_METADATA_INVALID",
+                        "evidence_captured_at must use YYYY-MM-DD.",
+                        "draft.md",
+                    )
+                )
+            source = draft.get("evidence_source")
+            if not isinstance(source, str) or not source.strip():
+                errors.append(
+                    problem(
+                        "MEDIA_METADATA_INVALID",
+                        "evidence_source must identify the owner or source URL.",
+                        "draft.md",
+                    )
+                )
+            use_basis = draft.get("evidence_use_basis")
+            if not isinstance(use_basis, str) or not use_basis.strip():
+                errors.append(
+                    problem(
+                        "MEDIA_METADATA_INVALID",
+                        "evidence_use_basis must explain why the image may be used.",
+                        "draft.md",
+                    )
+                )
         for field in ("cover_image", "evidence_image"):
             value = draft.get(field, "")
             image_path = (post_dir / value).resolve() if isinstance(value, str) else post_dir
@@ -443,6 +795,18 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
             else:
                 if not image_path.is_file():
                     errors.append(problem("MEDIA_FILE_MISSING", f"Missing file for {field}.", "draft.md"))
+                elif image_path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".gif", ".webp"}:
+                    errors.append(
+                        problem(
+                            "MEDIA_TYPE_INVALID",
+                            f"{field} must use PNG, JPEG, GIF, or WebP.",
+                            "draft.md",
+                        )
+                    )
+                elif image_path.stat().st_size == 0:
+                    errors.append(
+                        problem("MEDIA_FILE_EMPTY", f"{field} cannot be empty.", "draft.md")
+                    )
         if stage == "proposal" and draft.get("status") != "proposal":
             errors.append(problem("DRAFT_NOT_PROPOSAL", "Proposal validation requires status proposal.", "draft.md"))
         if stage == "prepare" and draft.get("status") not in {"draft", "final-approved"}:
@@ -463,8 +827,14 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
                 "content-index.json",
             )
         )
-    mix = validate_index(index, brief, draft, stage, errors) if index and brief and draft else {"trend": 0, "evergreen": 0}
-    if mix["trend"] + mix["evergreen"] == 8 and mix != {"trend": 6, "evergreen": 2}:
+    mix = (
+        validate_index(index, brief, draft, stage, errors)
+        if index and brief and draft
+        else {"trend": 0, "evergreen": 0, "entry": 0, "proof": 0}
+    )
+    if index.get("schema_version") == 1 and mix["trend"] + mix["evergreen"] == 8 and (
+        mix["trend"] != 6 or mix["evergreen"] != 2
+    ):
         warnings.append(
             problem(
                 "PILOT_MIX_DEVIATION",
@@ -472,6 +842,44 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
                 "content-index.json",
             )
         )
+    if index.get("schema_version") == 2 and mix["entry"] + mix["proof"] == 8 and (
+        mix["entry"] != 4 or mix["proof"] != 4
+    ):
+        warnings.append(
+            problem(
+                "PILOT_PAIR_DEVIATION",
+                "The eight-post pilot should contain four entry and four proof posts.",
+                "content-index.json",
+            )
+        )
+
+    if index.get("schema_version") == 2 and draft and draft_text:
+        next_id = draft.get("recommended_next_id", "")
+        posts = index.get("posts", [])
+        target = next(
+            (
+                item
+                for item in posts
+                if isinstance(item, dict) and item.get("post_id") == next_id
+            ),
+            None,
+        )
+        if target and target.get("publishing_state") == "published":
+            target_url = target.get("url", "")
+            link_label = draft.get("recommended_next_label", "")
+            if (
+                not target_url
+                or target_url not in draft_text
+                or not link_label
+                or link_label not in draft_text
+            ):
+                errors.append(
+                    problem(
+                        "NEXT_LINK_MISSING_BODY",
+                        "A published recommended next post needs its URL and descriptive label in the body.",
+                        "draft.md",
+                    )
+                )
 
     summary = draft_result.get("summary", {})
     return {
@@ -487,6 +895,8 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
             "unresolved_markers": summary.get("unresolved_markers", 0),
             "trend_posts": mix["trend"],
             "evergreen_posts": mix["evergreen"],
+            "entry_posts": mix["entry"],
+            "proof_posts": mix["proof"],
             "error_count": len(errors),
             "warning_count": len(warnings),
         },

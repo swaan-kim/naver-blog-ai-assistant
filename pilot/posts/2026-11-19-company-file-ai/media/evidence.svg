@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <rect width="1200" height="1500" fill="#F7F2E8"/>
+  <text x="80" y="95" font-family="Malgun Gothic, sans-serif" font-size="30" font-weight="700" fill="#67736B">AI 냠냠 · 완전한 가상 예시</text>
+  <text x="80" y="190" font-family="Malgun Gothic, sans-serif" font-size="62" font-weight="800" fill="#172038">원본 전체보다</text>
+  <text x="80" y="270" font-family="Malgun Gothic, sans-serif" font-size="62" font-weight="800" fill="#172038">목적에 필요한 정보만</text>
+
+  <rect x="70" y="340" width="1060" height="330" rx="32" fill="#FFF" stroke="#D9877B" stroke-width="5"/>
+  <rect x="105" y="380" width="190" height="58" rx="29" fill="#F8DDD8"/>
+  <text x="200" y="421" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#9A3F35">원본 전체</text>
+  <text x="110" y="500" font-family="Malgun Gothic, sans-serif" font-size="40" font-weight="700" fill="#172038">A사 · 담당자 홍길동 · 010-0000-0000</text>
+  <text x="110" y="565" font-family="Malgun Gothic, sans-serif" font-size="40" font-weight="700" fill="#172038">월 970만원 · 납기 협의 중</text>
+  <text x="110" y="625" font-family="Malgun Gothic, sans-serif" font-size="31" fill="#8A4A43">고객 식별 정보와 미확정 조건까지 함께 들어갑니다.</text>
+
+  <circle cx="600" cy="730" r="46" fill="#233A5A"/>
+  <path d="M575 720 L600 745 L625 720" fill="none" stroke="#FFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="70" y="800" width="1060" height="420" rx="32" fill="#FFF" stroke="#74A884" stroke-width="5"/>
+  <rect x="105" y="840" width="270" height="58" rx="29" fill="#DFF0E3"/>
+  <text x="240" y="881" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="29" font-weight="800" fill="#2E6C42">목적만 남긴 입력</text>
+  <text x="110" y="965" font-family="Malgun Gothic, sans-serif" font-size="38" font-weight="700" fill="#172038">“안녕하세요. 월 [확정 금액]에</text>
+  <text x="110" y="1025" font-family="Malgun Gothic, sans-serif" font-size="38" font-weight="700" fill="#172038">진행 가능합니다. 납기는 아직</text>
+  <text x="110" y="1085" font-family="Malgun Gothic, sans-serif" font-size="38" font-weight="700" fill="#172038">협의 중입니다.”</text>
+  <text x="110" y="1160" font-family="Malgun Gothic, sans-serif" font-size="31" fill="#38664A">고객명·연락처는 빼고, 없는 사실은 만들지 않습니다.</text>
+
+  <rect x="70" y="1280" width="1060" height="125" rx="26" fill="#172038"/>
+  <text x="600" y="1335" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="34" font-weight="800" fill="#FFF">이것은 완전한 익명화 보장이 아니라</text>
+  <text x="600" y="1380" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="34" font-weight="800" fill="#FFF">원본 전송을 줄이는 첫 단계입니다.</text>
+  <text x="600" y="1445" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="30" fill="#68736B">직접 제작 · 실제 고객 자료/제품 화면 아님</text>
+  <text x="600" y="1482" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="28" fill="#68736B">기준일 2026-11-19</text>
+</svg>

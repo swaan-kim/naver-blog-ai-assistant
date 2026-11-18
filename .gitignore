@@ -24,3 +24,5 @@ traces/
 playwright-report/
 test-results/
 *.zip
+.tmp-tests/
+.tmp-skill-validator/

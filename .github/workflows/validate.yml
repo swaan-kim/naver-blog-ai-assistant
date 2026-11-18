@@ -9,11 +9,15 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run draft validator tests
-        run: python -m unittest discover -s skills/naver-blog-assistant/tests -v
+      - name: Run skill and editorial validation tests
+        run: python -m unittest discover -s skills/naver-blog-assistant/tests -p "test_*.py" -v
