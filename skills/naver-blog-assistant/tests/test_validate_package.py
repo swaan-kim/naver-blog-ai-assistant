@@ -208,6 +208,22 @@ class PackageValidationTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["summary"]["unresolved_markers"], 0)
 
+    def test_prepare_package_allows_cover_only(self) -> None:
+        draft = (
+            draft_text()
+            .replace('evidence_image: "evidence.png"', 'evidence_image: ""')
+            .replace('images: ["cover.png", "evidence.png"]', 'images: ["cover.png"]')
+            .replace("\n\n{{image:evidence}}", "")
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            post_dir, index_path = self.write_package(
+                Path(temp), brief=brief_text(), draft=draft, index=index_data()
+            )
+            (post_dir / "evidence.png").unlink()
+            result = validate_package.validate_package(post_dir, index_path, "prepare")
+
+        self.assertTrue(result["ok"], result)
+
     def test_proposal_passes_without_owner_approval_or_published_hub(self) -> None:
         brief = (
             brief_text()

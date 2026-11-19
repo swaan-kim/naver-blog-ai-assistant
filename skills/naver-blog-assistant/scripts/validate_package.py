@@ -785,7 +785,11 @@ def validate_package(post_dir: Path, index_path: Path, stage: str) -> dict[str, 
                         "draft.md",
                     )
                 )
-        for field in ("cover_image", "evidence_image"):
+        media_fields = ["cover_image"]
+        evidence_image = draft.get("evidence_image", "")
+        if isinstance(evidence_image, str) and evidence_image.strip():
+            media_fields.append("evidence_image")
+        for field in media_fields:
             value = draft.get(field, "")
             image_path = (post_dir / value).resolve() if isinstance(value, str) else post_dir
             try:

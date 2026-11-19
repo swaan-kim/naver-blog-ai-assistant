@@ -7,8 +7,8 @@ cluster_id: "repetitive-work"
 category: "AI 냠냠"
 tags: ["AI냠냠", "AI회의록", "업무자동화", "회의정리"]
 cover_image: "media/cover.png"
-evidence_image: "media/evidence.png"
-images: ["media/cover.png", "media/evidence.png"]
+evidence_image: ""
+images: ["media/cover.png"]
 ai_media: "true"
 reading_minutes: 4
 one_line_answer: "회의 요약 뒤에 결정·할 일·담당·기한을 따로 뽑고, 회의록에 없는 값은 추측하지 말고 미정으로 남겨야 합니다."
@@ -73,10 +73,6 @@ status: "proposal"
 AI가 자연스러운 표를 만들려고 ‘담당: 운영팀, 기한: 목요일’이라고 채우면 보기에는 좋지만 새로운 약속을 만든 셈입니다. 원문에 없는 값은 `미정`으로 두고, 근거 문장을 함께 남겨야 사람이 바로 확인할 수 있습니다.
 
 [Atlassian의 회의록 안내](https://www.atlassian.com/software/confluence/templates/meeting-notes)도 결정 사항과 함께 담당자·기한이 있는 실행 항목을 기록하도록 설명합니다. 좋은 요약보다 다음 행동의 소유자와 마감이 분명해야 일이 움직인다는 뜻입니다.
-
-{{image:evidence}}
-
-*직접 만든 가상 회의 전후 예시입니다. 특정 AI 도구가 실제로 출력한 화면이 아닙니다.*
 
 ## AI에게 이렇게 요청합니다
 

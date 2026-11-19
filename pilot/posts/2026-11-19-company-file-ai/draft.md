@@ -7,8 +7,8 @@ cluster_id: "safe-ai"
 category: "AI 냠냠"
 tags: ["AI냠냠", "회사자료", "AI보안", "업무AI"]
 cover_image: "media/cover.png"
-evidence_image: "media/evidence.png"
-images: ["media/cover.png", "media/evidence.png"]
+evidence_image: ""
+images: ["media/cover.png"]
 ai_media: "true"
 reading_minutes: 4
 one_line_answer: "학습 설정만 보지 말고 회사 승인·민감정보·최소 범위·공유 권한·보관과 삭제를 함께 확인해야 합니다."
@@ -67,10 +67,6 @@ status: "proposal"
 `다듬을 문장: “안녕하세요. 월 [확정 금액]에 진행 가능합니다. 납기는 아직 협의 중입니다.” 고객명·연락처를 만들거나 추측하지 마세요.`
 
 실제 값 대신 자리표시자를 쓰고, 목적과 무관한 식별 단서는 빼고, 없는 사실을 추측하지 말라고 요청했습니다. 그래도 발송 전에는 결과를 원문과 다시 대조해야 합니다. 이것은 익명화가 완벽하다는 보장이 아니라 원본 전송을 줄이는 첫 단계입니다.
-
-{{image:evidence}}
-
-*직접 만든 가상 예시 설명도입니다. 실제 고객 자료나 제품 화면이 아닙니다.*
 
 ## 첨부 전 다섯 가지를 확인합니다
 

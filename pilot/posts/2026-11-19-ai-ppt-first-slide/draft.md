@@ -7,8 +7,8 @@ cluster_id: "repetitive-work"
 category: "AI 냠냠"
 tags: ["AI냠냠", "AIPPT", "ChatGPTSlides", "보고서작성"]
 cover_image: "media/cover.png"
-evidence_image: "media/evidence.png"
-images: ["media/cover.png", "media/evidence.png"]
+evidence_image: ""
+images: ["media/cover.png"]
 ai_media: "true"
 reading_minutes: 4
 one_line_answer: "첫 장에는 가장 큰 숫자가 아니라 이번 회의에서 내려야 할 결정과 그 판단에 필요한 숫자만 남겨야 합니다."
@@ -74,10 +74,6 @@ AI에게는 디자인 분위기보다 먼저 발표 목적과 검증 규칙을 �
 `팀장 승인용 3장으로 정리해 주세요. 1장: 무엇이 달라졌나, 2장: 왜 그런가, 3장: 오늘 결정할 일. 예산과 신청 수치는 원문 그대로 쓰고, 원문에 없는 수치는 [미확인]으로 표시하세요.`
 
 1장은 변화와 결정 질문, 2장은 확인된 원인과 `[미확인]`, 3장은 선택지와 담당자를 담습니다. 원문과 대조할 숫자 두 개와 빈 근거가 한곳에 모이므로 무엇을 확인할지 분명해집니다.
-
-{{image:evidence}}
-
-*가상 캠페인 자료로 직접 만든 3장 목차입니다. 실제 ChatGPT Slides 사용 화면이 아닙니다.*
 
 ## ChatGPT Slides는 어디서 시작하나요?
 

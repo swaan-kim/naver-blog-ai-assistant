@@ -314,6 +314,48 @@ class DraftValidationTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["summary"]["format"], "3분 AI 정리")
 
+    def test_pilot_allows_cover_only_and_rejects_unconfigured_evidence_marker(self) -> None:
+        body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
+            f"## 소제목 {index}\n\n" + ("한글설명" * 75)
+            for index in range(1, 4)
+        ) + "\n\n공식 발표를 직접 확인해보세요."
+        text = (
+            "---\n"
+            'post_id: "2026-11-20-cover-only"\n'
+            'title: "표지 한 장으로 읽기 편한 AI 글"\n'
+            'format: "3분 AI 정리"\n'
+            'category: "AI 냠냠"\n'
+            'tags: ["AI냠냠", "읽기편한글"]\n'
+            'cover_image: "cover.png"\n'
+            'evidence_image: ""\n'
+            'images: ["cover.png"]\n'
+            'ai_media: "false"\n'
+            'sources: ["official|https://openai.com"]\n'
+            'content_index_path: "../../content-index.json"\n'
+            'hub_url: ""\n'
+            'previous_url: ""\n'
+            'pair_url: ""\n'
+            'cta: "공식 발표를 직접 확인해보세요."\n'
+            'status: "proposal"\n'
+            "---\n\n"
+            f"{body}\n"
+        )
+
+        valid = validate_draft.validate_text(text)
+        stray_marker = validate_draft.validate_text(
+            text.replace(
+                "\n\n공식 발표를 직접 확인해보세요.\n",
+                "\n\n{{image:evidence}}\n\n공식 발표를 직접 확인해보세요.\n",
+            )
+        )
+        mismatched_list = validate_draft.validate_text(
+            text.replace('images: ["cover.png"]', 'images: ["cover.png", "evidence.png"]')
+        )
+
+        self.assertTrue(valid["ok"], valid)
+        self.assertIn("IMAGE_MARKER_INVALID", codes(stray_marker))
+        self.assertIn("IMAGES_INVALID", codes(mismatched_list))
+
     def test_proposal_may_leave_hub_url_blank_but_draft_may_not(self) -> None:
         body = "도입입니다.\n\n{{image:cover}}\n\n" + "\n\n".join(
             f"## 소제목 {index}\n\n" + ("한글설명" * 75)

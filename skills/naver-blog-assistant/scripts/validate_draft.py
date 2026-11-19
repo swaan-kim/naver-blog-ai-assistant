@@ -512,7 +512,6 @@ def validate_text(
         for field in (
             "post_id",
             "cover_image",
-            "evidence_image",
             "content_index_path",
             "cta",
             "status",
@@ -520,6 +519,10 @@ def validate_text(
             value = metadata.get(field, "")
             if not isinstance(value, str) or not value.strip():
                 errors.append(Problem("FIELD_INVALID", f"{field} must be a non-empty string."))
+
+        evidence_image = metadata.get("evidence_image", "")
+        if not isinstance(evidence_image, str):
+            errors.append(Problem("FIELD_INVALID", "evidence_image must be a string."))
 
         status = metadata.get("status", "")
         if status not in PILOT_STATUSES:
@@ -608,24 +611,35 @@ def validate_text(
                         errors.append(Problem("DATE_INVALID", f"{field} must use YYYY-MM-DD."))
 
         if isinstance(images, list):
-            expected_images = [metadata.get("cover_image", ""), metadata.get("evidence_image", "")]
-            if len(images) != 2 or images != expected_images:
+            expected_images = [metadata.get("cover_image", "")]
+            if isinstance(evidence_image, str) and evidence_image.strip():
+                expected_images.append(evidence_image)
+            if images != expected_images:
                 errors.append(
                     Problem(
                         "IMAGES_INVALID",
-                        "images must contain the cover image and evidence image once, in that order.",
+                        "images must contain the cover once and the optional evidence image once, in that order.",
                     )
                 )
 
-        for role in ("cover", "evidence"):
-            marker = f"{{{{image:{role}}}}}"
-            if text.count(marker) != 1:
-                errors.append(
-                    Problem(
-                        "IMAGE_MARKER_INVALID",
-                        f"The body must contain {marker} exactly once.",
-                    )
+        cover_marker = "{{image:cover}}"
+        if text.count(cover_marker) != 1:
+            errors.append(
+                Problem(
+                    "IMAGE_MARKER_INVALID",
+                    f"The body must contain {cover_marker} exactly once.",
                 )
+            )
+
+        evidence_marker = "{{image:evidence}}"
+        expected_evidence_markers = 1 if isinstance(evidence_image, str) and evidence_image.strip() else 0
+        if text.count(evidence_marker) != expected_evidence_markers:
+            errors.append(
+                Problem(
+                    "IMAGE_MARKER_INVALID",
+                    "Use {{image:evidence}} exactly once only when evidence_image is configured.",
+                )
+            )
 
         cta = metadata.get("cta", "")
         if isinstance(cta, str) and cta.strip() and cta.strip() not in text:

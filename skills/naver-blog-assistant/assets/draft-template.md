@@ -11,8 +11,7 @@ tags:
 cover_image: ""
 evidence_image: ""
 images:
-  - ""
-  - ""
+  - "media/cover.png"
 ai_media: "false"
 reading_minutes: 3
 one_line_answer: ""
@@ -57,8 +56,6 @@ status: "draft"
 ## 무슨 일이 있었나요?
 
 확인한 사실을 짧게 적습니다. 출처가 말하지 않은 내용은 사실처럼 쓰지 않습니다.
-
-{{image:evidence}}
 
 ## 왜 나와 관련 있나요?
 
